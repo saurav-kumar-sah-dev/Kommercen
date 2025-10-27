@@ -143,8 +143,8 @@ kommercen/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/kommercen-ecommerce.git
-   cd kommercen-ecommerce
+   git clone https://github.com/saurav-kumar-sah-dev/Kommercen.git
+   cd Kommercen
    ```
 
 2. **Install dependencies**
@@ -176,7 +176,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ## 📱 Demo
 
-[Live Demo](https://your-demo-link.vercel.app) | [Backend API](https://your-backend-link.onrender.com/api/health)
+[Live Demo](https://kommercen.vercel.app) | [Backend API](https://kommercen-backend.onrender.com/api/health)
 
 ## 🤝 Contributing
 
@@ -205,7 +205,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you have any questions or need help, please:
 - Open an issue on GitHub
-- Contact us at [your-email@example.com](mailto:your-email@example.com)
+- Contact us at [saurav-kumar-sah-dev@github.com](mailto:saurav-kumar-sah-dev@github.com)
 
 ---
 
