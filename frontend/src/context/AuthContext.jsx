@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import api from '@/utils/api'
 
 const AuthContext = createContext()
 
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       if (state.token) {
         try {
-          const res = await axios.get('/api/auth/me')
+          const res = await api.get('/auth/me')
           dispatch({ type: 'USER_LOADED', payload: res.data.user })
         } catch (error) {
           dispatch({ type: 'AUTH_ERROR' })
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password })
+      const res = await api.post('/auth/login', { email, password })
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: res.data
@@ -106,7 +107,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const res = await axios.post('/api/auth/register', { name, email, password })
+      const res = await api.post('/auth/register', { name, email, password })
       dispatch({
         type: 'REGISTER_SUCCESS',
         payload: res.data
@@ -127,7 +128,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const res = await axios.put('/api/auth/profile', profileData)
+      const res = await api.put('/auth/profile', profileData)
       dispatch({
         type: 'UPDATE_USER',
         payload: res.data.user
@@ -143,7 +144,7 @@ export const AuthProvider = ({ children }) => {
 
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      await axios.put('/api/auth/change-password', {
+      await api.put('/auth/change-password', {
         currentPassword,
         newPassword
       })
