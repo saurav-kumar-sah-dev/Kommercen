@@ -15,7 +15,6 @@ const generateToken = (userId) => {
 // @desc    Register a new user
 // @access  Public
 router.post('/register', async (req, res) => {
-  console.log('📝 Register route called with body:', req.body);
   try {
     const { name, email, password } = req.body;
 
@@ -67,7 +66,6 @@ router.post('/register', async (req, res) => {
 // @desc    Login user
 // @access  Public
 router.post('/login', async (req, res) => {
-  console.log('🔐 Login route called with body:', req.body);
   try {
     const { email, password } = req.body;
 

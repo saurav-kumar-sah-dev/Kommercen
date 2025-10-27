@@ -7,6 +7,12 @@
 
 A modern, full-stack e-commerce platform built with the MERN stack, featuring a sleek UI with Tailwind CSS, secure payment processing with Razorpay, and seamless image management with Cloudinary. Perfect for Indian market with optimized payment gateway integration.
 
+> **Note**: This project has been cleaned up to contain only essential files for development and deployment. All unnecessary documentation and scripts have been removed for a streamlined experience.
+
+## 📱 Live Demo
+
+🚀 **[Try Kommercen Live](https://kommercen.vercel.app)** | 🔧 **[API Health Check](https://kommercen-backend.onrender.com/api/health)**
+
 ## ✨ Features
 
 ### 🔐 Authentication & Security
@@ -76,7 +82,7 @@ A modern, full-stack e-commerce platform built with the MERN stack, featuring a 
 
 3. Set up environment variables:
    - Create `.env` files in both `backend` and `frontend` directories
-   - Fill in your configuration values (see SETUP.md for details)
+   - Fill in your configuration values (see Environment Variables section below)
 
 4. Start the development server:
    ```bash
@@ -113,22 +119,45 @@ VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
 ```
 kommercen/
 ├── backend/
-│   ├── controllers/
 │   ├── middleware/
+│   │   ├── auth.js
+│   │   └── validation.js
 │   ├── models/
+│   │   ├── Order.js
+│   │   ├── Product.js
+│   │   └── User.js
 │   ├── routes/
+│   │   ├── auth.js
+│   │   ├── orders.js
+│   │   ├── products.js
+│   │   ├── razorpay.js
+│   │   ├── upload.js
+│   │   └── users.js
+│   ├── scripts/
+│   │   └── createUser.js
 │   ├── utils/
-│   └── server.js
+│   │   └── cloudinary.js
+│   ├── server.js
+│   └── package.json
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   ├── layout/
+│   │   │   ├── payments/
+│   │   │   ├── products/
+│   │   │   └── ui/
 │   │   ├── pages/
-│   │   ├── hooks/
+│   │   │   ├── admin/
+│   │   │   └── [various pages]
 │   │   ├── context/
 │   │   ├── utils/
 │   │   └── App.jsx
+│   ├── dist/
+│   ├── vercel.json
 │   └── package.json
-└── package.json
+├── package.json
+└── README.md
 ```
 
 ## 🚀 Quick Start
@@ -153,8 +182,8 @@ kommercen/
    ```
 
 3. **Set up environment variables**
-   - Copy `.env.example` to `.env` in both `backend` and `frontend` directories
-   - Fill in your configuration values
+   - Create `.env` files in both `backend` and `frontend` directories
+   - Fill in your configuration values (see Environment Variables section below)
 
 4. **Start the development server**
    ```bash
@@ -168,15 +197,9 @@ kommercen/
 ## 🌐 Deployment
 
 This project is optimized for deployment on:
-- **Frontend**: Vercel
-- **Backend**: Render
+- **Frontend**: Vercel (configured with `vercel.json`)
+- **Backend**: Render or any Node.js hosting platform
 - **Database**: MongoDB Atlas
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
-
-## 📱 Demo
-
-[Live Demo](https://kommercen.vercel.app) | [Backend API](https://kommercen-backend.onrender.com/api/health)
 
 ## 🤝 Contributing
 

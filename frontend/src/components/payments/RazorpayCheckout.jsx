@@ -18,7 +18,6 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
           toast.error('Razorpay is not configured. Please contact administrator.')
         }
       } catch (error) {
-        console.error('Error loading Razorpay config:', error)
         toast.error('Failed to load payment configuration')
       }
     }
@@ -69,7 +68,6 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
                 onSuccess(verifyResponse.data.order)
               }
             } catch (error) {
-              console.error('Payment verification error:', error)
               toast.error('Payment verification failed')
             }
           },
@@ -101,7 +99,6 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       document.body.appendChild(script)
 
     } catch (error) {
-      console.error('Payment error:', error)
       toast.error('Payment failed. Please try again.')
       setIsProcessing(false)
     }
