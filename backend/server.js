@@ -10,14 +10,33 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'https://kommercen.vercel.app',
-    'https://kommercen-git-main-saurav-kumar-sah-dev.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://kommercen.vercel.app',
+      'https://kommercen-git-main-saurav-kumar-sah-dev.vercel.app',
+      'https://kommercen-frontend.vercel.app',
+      'https://kommercen-frontend-git-main-saurav-kumar-sah-dev.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176'
+    ];
+    
+    // Allow any Vercel subdomain
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    console.log('🚫 CORS blocked origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
