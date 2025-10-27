@@ -114,6 +114,23 @@ app.post('/api/auth/test', (req, res) => {
   });
 });
 
+// Simple auth routes for testing
+app.post('/api/auth/simple-login', (req, res) => {
+  res.json({ 
+    message: 'Simple login endpoint working',
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.post('/api/auth/simple-register', (req, res) => {
+  res.json({ 
+    message: 'Simple register endpoint working',
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
