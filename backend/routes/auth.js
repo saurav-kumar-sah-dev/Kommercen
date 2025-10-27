@@ -14,9 +14,18 @@ const generateToken = (userId) => {
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
-router.post('/register', validateUserRegistration, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // Basic validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -56,9 +65,14 @@ router.post('/register', validateUserRegistration, async (req, res) => {
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', validateUserLogin, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
     // Find user by email
     const user = await User.findOne({ email });

@@ -137,7 +137,7 @@ services:
 
 3. **Environment Variables**:
    ```
-   VITE_API_URL=https://your-backend-name.onrender.com/api
+   VITE_API_URL=https://kommercen-backend.onrender.com/api
    VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
    ```
 
