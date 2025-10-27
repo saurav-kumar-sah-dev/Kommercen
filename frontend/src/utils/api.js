@@ -1,10 +1,14 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'production' ? 'https://kommercen-backend.onrender.com/api' : 'http://localhost:5000/api')
+// Determine API URL based on environment
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
+const API_URL = import.meta.env.VITE_API_URL || (isProduction ? 'https://kommercen-backend.onrender.com/api' : 'http://localhost:5000/api')
 
 // Debug: Log the API URL being used
 console.log('🔗 Frontend API URL:', API_URL)
 console.log('🌍 Environment:', import.meta.env.MODE)
+console.log('🌐 Hostname:', window.location.hostname)
+console.log('📍 Is Production:', isProduction)
 console.log('🕐 Cache bust timestamp:', new Date().toISOString())
 
 // Create axios instance
@@ -43,7 +47,15 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (email, password) => {
     console.log('🔐 Attempting login to:', `${API_URL}/auth/login`)
+    console.log('📤 Request data:', { email, password })
     return api.post('/auth/login', { email, password })
+      .catch(error => {
+        console.error('❌ Login error:', error)
+        console.error('❌ Error response:', error.response)
+        console.error('❌ Error status:', error.response?.status)
+        console.error('❌ Error data:', error.response?.data)
+        throw error
+      })
   },
   register: (name, email, password) => {
     console.log('📝 Attempting register to:', `${API_URL}/auth/register`)
