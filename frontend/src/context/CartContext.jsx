@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuth } from './AuthContext'
+import api from '@/utils/api'
 
 const CartContext = createContext()
 
@@ -92,7 +93,7 @@ export const CartProvider = ({ children }) => {
   const loadCart = async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      const res = await axios.get('/api/users/cart')
+      const res = await api.get('/users/cart')
       dispatch({ type: 'SET_CART', payload: res.data.cart })
     } catch (error) {
       // Error loading cart
@@ -109,7 +110,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      const res = await axios.post('/api/users/cart', { productId, quantity })
+      const res = await api.post('/users/cart', { productId, quantity })
       
       // Update local state with the response
       dispatch({ type: 'SET_CART', payload: res.data.cart })
@@ -129,7 +130,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      const res = await axios.put(`/api/users/cart/${productId}`, { quantity })
+      const res = await api.put(`/users/cart/${productId}`, { quantity })
       
       dispatch({ type: 'SET_CART', payload: res.data.cart })
       return { success: true }
@@ -147,7 +148,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      const res = await axios.delete(`/api/users/cart/${productId}`)
+      const res = await api.delete(`/users/cart/${productId}`)
       
       dispatch({ type: 'SET_CART', payload: res.data.cart })
       toast.success('Item removed from cart')
@@ -166,7 +167,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      await axios.delete('/api/users/cart')
+      await api.delete('/users/cart')
       dispatch({ type: 'CLEAR_CART' })
       return { success: true }
     } catch (error) {
