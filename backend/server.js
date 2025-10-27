@@ -16,9 +16,7 @@ app.use(cors({
     
     const allowedOrigins = [
       'https://kommercen.vercel.app',
-      'https://kommercen-git-main-saurav-kumar-sah-dev.vercel.app',
       'https://kommercen-frontend.vercel.app',
-      'https://kommercen-frontend-git-main-saurav-kumar-sah-dev.vercel.app',
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:5175',
