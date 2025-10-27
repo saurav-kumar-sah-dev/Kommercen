@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Debug: Log the API URL being used
 console.log('🔗 Frontend API URL:', API_URL)
 console.log('🌍 Environment:', import.meta.env.MODE)
+console.log('🕐 Cache bust timestamp:', new Date().toISOString())
 
 // Create axios instance
 const api = axios.create({
@@ -41,12 +42,12 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (email, password) => {
-    console.log('🔐 Attempting login to:', `${API_URL}/auth/simple-login`)
-    return api.post('/auth/simple-login', { email, password })
+    console.log('🔐 Attempting login to:', `${API_URL}/auth/login`)
+    return api.post('/auth/login', { email, password })
   },
   register: (name, email, password) => {
-    console.log('📝 Attempting register to:', `${API_URL}/auth/simple-register`)
-    return api.post('/auth/simple-register', { name, email, password })
+    console.log('📝 Attempting register to:', `${API_URL}/auth/register`)
+    return api.post('/auth/register', { name, email, password })
   },
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
