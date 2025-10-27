@@ -20,6 +20,9 @@ import AdminDashboard from '@/pages/admin/Dashboard'
 import AdminProducts from '@/pages/admin/Products'
 import AdminOrders from '@/pages/admin/Orders'
 import AdminUsers from '@/pages/admin/Users'
+import Terms from '@/pages/Terms'
+import Privacy from '@/pages/Privacy'
+import CookiePolicy from '@/pages/CookiePolicy'
 import NotFound from '@/pages/NotFound'
 
 // Protected Route Component
@@ -44,6 +47,9 @@ function App() {
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
           
           {/* Protected Routes */}
           <Route path="/cart" element={

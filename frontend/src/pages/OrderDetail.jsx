@@ -401,11 +401,11 @@ const OrderDetail = () => {
                   <div className="space-y-2 text-sm text-blue-800">
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                      <span>Email: support@kommercen.com</span>
+                      <span>Email: sauravshubham903@gmail.com</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                      <span>Phone: +91 XXXXXXXXXX</span>
+                      <span>Phone: +91 (Available on request)</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>

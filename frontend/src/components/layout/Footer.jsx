@@ -18,16 +18,16 @@ const Footer = () => {
               Your marketplace, simplified. Discover amazing products at great prices with fast, reliable delivery.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://github.com/saurav-kumar-sah-dev" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FiFacebook className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.linkedin.com/in/sauravkumarsah-dev/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FiTwitter className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://saurav-portfolio-dun.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FiInstagram className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.linkedin.com/in/sauravkumarsah-dev/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FiLinkedin className="w-5 h-5" />
               </a>
             </div>
@@ -103,17 +103,18 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <FiMail className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-400 text-sm">support@kommercen.com</span>
+                <span className="text-gray-400 text-sm">sauravshubham903@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiPhone className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-400 text-sm">+1 (555) 123-4567</span>
+                <span className="text-gray-400 text-sm">+91 (Available on request)</span>
               </div>
               <div className="flex items-start space-x-3">
                 <FiMapPin className="w-4 h-4 text-gray-400 mt-1" />
                 <span className="text-gray-400 text-sm">
-                  123 Commerce Street<br />
-                  Business District, BD 12345
+                  India<br />
+                  Remote Available<br />
+                  Global Services
                 </span>
               </div>
             </div>
@@ -124,7 +125,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-gray-400 text-sm">
-              © 2024 Kommercen. All rights reserved.
+              © 2025 Kommercen. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
