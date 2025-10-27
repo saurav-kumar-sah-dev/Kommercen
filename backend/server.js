@@ -43,8 +43,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kommercen
 // Routes
 console.log('Loading routes...');
 try {
-  app.use('/api/auth', require('./routes/auth'));
+  const authRoutes = require('./routes/auth');
+  app.use('/api/auth', authRoutes);
   console.log('✅ Auth routes loaded');
+  console.log('🔍 Auth routes object:', authRoutes);
 } catch (error) {
   console.error('❌ Error loading auth routes:', error);
 }
@@ -105,10 +107,18 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Test auth endpoint directly
-app.post('/api/auth/test', (req, res) => {
+// Test if auth routes are accessible
+app.get('/api/auth/test-route', (req, res) => {
   res.json({ 
-    message: 'Auth test endpoint working',
+    message: 'Auth routes are accessible',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test POST to auth routes
+app.post('/api/auth/test-post', (req, res) => {
+  res.json({ 
+    message: 'Auth POST routes are accessible',
     body: req.body,
     timestamp: new Date().toISOString()
   });
