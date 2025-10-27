@@ -41,12 +41,12 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (email, password) => {
-    console.log('🔐 Attempting login to:', `${API_URL}/auth/login`)
-    return api.post('/auth/login', { email, password })
+    console.log('🔐 Attempting login to:', `${API_URL}/auth/simple-login`)
+    return api.post('/auth/simple-login', { email, password })
   },
   register: (name, email, password) => {
-    console.log('📝 Attempting register to:', `${API_URL}/auth/register`)
-    return api.post('/auth/register', { name, email, password })
+    console.log('📝 Attempting register to:', `${API_URL}/auth/simple-register`)
+    return api.post('/auth/simple-register', { name, email, password })
   },
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
