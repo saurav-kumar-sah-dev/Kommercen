@@ -1,0 +1,249 @@
+const express = require('express');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const Order = require('../models/Order');
+const Product = require('../models/Product');
+const { auth } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Initialize Razorpay only if keys are provided
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn('Razorpay keys not configured. Razorpay features will be disabled.');
+}
+
+// @route   POST /api/razorpay/create-order
+// @desc    Create a Razorpay order
+// @access  Private
+router.post('/create-order', auth, async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(503).json({ 
+        message: 'Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.' 
+      });
+    }
+
+    const { items, shippingAddress } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No items provided' });
+    }
+
+    // Calculate total amount
+    let totalAmount = 0;
+    const orderItems = [];
+
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ message: `Product ${item.productId} not found` });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ 
+          message: `Insufficient stock for ${product.name}. Available: ${product.stock}` 
+        });
+      }
+
+      const itemTotal = product.price * item.quantity;
+      totalAmount += itemTotal;
+
+      orderItems.push({
+        product: product._id,
+        quantity: item.quantity,
+        price: product.price,
+        name: product.name,
+        image: product.images[0]?.url || ''
+      });
+    }
+
+    // Add shipping cost and tax
+    const shippingCost = totalAmount > 100 ? 0 : 10; // Free shipping over ₹100
+    const taxRate = 0.18; // 18% GST for India
+    const taxAmount = totalAmount * taxRate;
+    const finalAmount = Math.round((totalAmount + shippingCost + taxAmount) * 100); // Convert to paise
+
+    // Create Razorpay order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: finalAmount,
+      currency: 'INR',
+      receipt: `order_${Date.now()}`,
+      notes: {
+        userId: req.user._id.toString(),
+        orderItems: JSON.stringify(orderItems),
+        shippingAddress: JSON.stringify(shippingAddress)
+      }
+    });
+
+    res.json({
+      orderId: razorpayOrder.id,
+      amount: finalAmount,
+      currency: 'INR',
+      orderItems,
+      subtotal: totalAmount,
+      shipping: shippingCost,
+      tax: taxAmount,
+      total: finalAmount / 100
+    });
+
+  } catch (error) {
+    console.error('Razorpay order creation error:', error);
+    res.status(500).json({ message: 'Error creating payment order' });
+  }
+});
+
+// @route   POST /api/razorpay/verify-payment
+// @desc    Verify Razorpay payment and create order
+// @access  Private
+router.post('/verify-payment', auth, async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(503).json({ 
+        message: 'Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.' 
+      });
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, shippingAddress, billingAddress } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: 'Payment verification data is required' });
+    }
+
+    // Verify payment signature
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ message: 'Invalid payment signature' });
+    }
+
+    // Get order details from Razorpay
+    const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
+    
+    // Parse order items from notes
+    const orderItems = JSON.parse(razorpayOrder.notes.orderItems);
+    const parsedShippingAddress = JSON.parse(razorpayOrder.notes.shippingAddress);
+
+    // Create order in database
+    const order = new Order({
+      user: req.user._id,
+      items: orderItems,
+      shippingAddress: shippingAddress || parsedShippingAddress,
+      billingAddress: billingAddress || parsedShippingAddress,
+      paymentMethod: {
+        type: 'razorpay',
+        details: {
+          razorpayOrderId: razorpay_order_id,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: razorpay_signature
+        }
+      },
+      paymentStatus: 'paid',
+      paymentIntentId: razorpay_payment_id,
+      subtotal: razorpayOrder.amount - (razorpayOrder.amount * 0.18) - 1000, // Rough calculation
+      tax: razorpayOrder.amount * 0.18,
+      shipping: razorpayOrder.amount > 10000 ? 0 : 1000,
+      total: razorpayOrder.amount,
+      status: 'confirmed'
+    });
+
+    await order.save();
+
+    // Update product stock
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(
+        item.product,
+        { $inc: { stock: -item.quantity } }
+      );
+    }
+
+    // Clear user's cart
+    req.user.cart = [];
+    await req.user.save();
+
+    res.json({
+      message: 'Order created successfully',
+      order: await Order.findById(order._id).populate('items.product', 'name price images')
+    });
+
+  } catch (error) {
+    console.error('Payment verification error:', error);
+    res.status(500).json({ message: 'Error verifying payment' });
+  }
+});
+
+// @route   GET /api/razorpay/config
+// @desc    Get Razorpay configuration for frontend
+// @access  Public
+router.get('/config', (req, res) => {
+  if (!razorpay) {
+    return res.status(503).json({ 
+      message: 'Razorpay is not configured',
+      keyId: null,
+      currency: 'INR'
+    });
+  }
+  
+  res.json({
+    keyId: process.env.RAZORPAY_KEY_ID,
+    currency: 'INR'
+  });
+});
+
+// @route   POST /api/razorpay/refund
+// @desc    Process refund for an order
+// @access  Private (Admin only)
+router.post('/refund', auth, async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(503).json({ 
+        message: 'Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.' 
+      });
+    }
+
+    const { orderId, amount, reason } = req.body;
+
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Create refund in Razorpay
+    const refund = await razorpay.payments.refund(order.paymentIntentId, {
+      amount: amount * 100, // Convert to paise
+      notes: {
+        reason: reason || 'Refund requested by admin'
+      }
+    });
+
+    // Update order status
+    order.paymentStatus = 'refunded';
+    order.refundAmount = amount;
+    order.refundReason = reason;
+    await order.save();
+
+    res.json({
+      message: 'Refund processed successfully',
+      refund
+    });
+
+  } catch (error) {
+    console.error('Refund error:', error);
+    res.status(500).json({ message: 'Error processing refund' });
+  }
+});
+
+module.exports = router;
