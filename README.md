@@ -133,8 +133,6 @@ kommercen/
 │   │   ├── razorpay.js
 │   │   ├── upload.js
 │   │   └── users.js
-│   ├── scripts/
-│   │   └── createUser.js
 │   ├── utils/
 │   │   └── cloudinary.js
 │   ├── server.js
