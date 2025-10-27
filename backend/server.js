@@ -10,13 +10,14 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [
-        process.env.FRONTEND_URL,
-        'https://kommercen.vercel.app',
-        'https://kommercen-git-main-saurav-kumar-sah-dev.vercel.app'
-      ]
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
+  origin: [
+    'https://kommercen.vercel.app',
+    'https://kommercen-git-main-saurav-kumar-sah-dev.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176'
+  ],
   credentials: true
 }));
 
