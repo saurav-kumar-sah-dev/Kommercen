@@ -53,7 +53,18 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Kommercen API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    hasJWTSecret: !!process.env.JWT_SECRET,
+    hasMongoURI: !!process.env.MONGODB_URI
+  });
+});
+
+// Test endpoint to check if auth routes are working
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Test endpoint working',
+    routes: ['/api/auth/login', '/api/auth/register', '/api/auth/me']
   });
 });
 
