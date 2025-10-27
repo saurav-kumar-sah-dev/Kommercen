@@ -41,12 +41,48 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kommercen
 .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/upload', require('./routes/upload'));
-app.use('/api/razorpay', require('./routes/razorpay'));
+console.log('Loading routes...');
+try {
+  app.use('/api/auth', require('./routes/auth'));
+  console.log('✅ Auth routes loaded');
+} catch (error) {
+  console.error('❌ Error loading auth routes:', error);
+}
+
+try {
+  app.use('/api/products', require('./routes/products'));
+  console.log('✅ Products routes loaded');
+} catch (error) {
+  console.error('❌ Error loading products routes:', error);
+}
+
+try {
+  app.use('/api/users', require('./routes/users'));
+  console.log('✅ Users routes loaded');
+} catch (error) {
+  console.error('❌ Error loading users routes:', error);
+}
+
+try {
+  app.use('/api/orders', require('./routes/orders'));
+  console.log('✅ Orders routes loaded');
+} catch (error) {
+  console.error('❌ Error loading orders routes:', error);
+}
+
+try {
+  app.use('/api/upload', require('./routes/upload'));
+  console.log('✅ Upload routes loaded');
+} catch (error) {
+  console.error('❌ Error loading upload routes:', error);
+}
+
+try {
+  app.use('/api/razorpay', require('./routes/razorpay'));
+  console.log('✅ Razorpay routes loaded');
+} catch (error) {
+  console.error('❌ Error loading razorpay routes:', error);
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -64,7 +100,17 @@ app.get('/api/health', (req, res) => {
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Test endpoint working',
-    routes: ['/api/auth/login', '/api/auth/register', '/api/auth/me']
+    routes: ['/api/auth/login', '/api/auth/register', '/api/auth/me'],
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test auth endpoint directly
+app.post('/api/auth/test', (req, res) => {
+  res.json({ 
+    message: 'Auth test endpoint working',
+    body: req.body,
+    timestamp: new Date().toISOString()
   });
 });
 
