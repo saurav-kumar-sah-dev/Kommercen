@@ -1,5 +1,4 @@
 import { createContext, useContext, useReducer, useEffect } from 'react'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 import api from '@/utils/api'
 
@@ -61,15 +60,6 @@ const authReducer = (state, action) => {
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
-
-  // Set up axios defaults
-  useEffect(() => {
-    if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`
-    } else {
-      delete axios.defaults.headers.common['Authorization']
-    }
-  }, [state.token])
 
   // Load user on app start
   useEffect(() => {

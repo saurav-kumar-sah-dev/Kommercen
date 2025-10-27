@@ -1,5 +1,4 @@
 import { createContext, useContext, useReducer, useEffect } from 'react'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuth } from './AuthContext'
 import api from '@/utils/api'
