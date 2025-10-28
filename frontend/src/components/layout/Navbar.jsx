@@ -62,7 +62,7 @@ const Navbar = () => {
           </motion.div>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-6">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-lg mx-6">
             <div className="relative w-full">
               <motion.div
                 whileFocus={{ scale: 1.01 }}
@@ -119,15 +119,15 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link to="/cart" className="relative p-2 text-white hover:text-gray-300 transition-colors duration-300">
+                  <Link to="/cart" title={`Cart (${totalItems})`} className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors duration-300">
                     <FiShoppingCart className="w-5 h-5" />
                     {totalItems > 0 && (
                       <motion.span 
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-bounce-gentle"
+                        className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-10 bg-red-500 text-white text-[10px] rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center font-bold leading-none shadow-md ring-2 ring-gray-900"
                       >
-                        {totalItems}
+                        {totalItems > 99 ? '99+' : totalItems}
                       </motion.span>
                     )}
                   </Link>
@@ -339,22 +339,21 @@ const Navbar = () => {
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Link
                         to="/cart"
-                        className="flex items-center space-x-3 px-4 py-3 text-white hover:text-gray-300 transition-colors duration-300"
+                        title={`Cart (${totalItems})`}
+                        className="flex items-center px-4 py-3 text-white hover:text-gray-300 transition-colors duration-300"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <div className="relative">
-                          <FiShoppingCart className="w-5 h-5" />
-                          {totalItems > 0 && (
-                            <motion.span 
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold animate-bounce-gentle"
-                            >
-                              {totalItems}
-                            </motion.span>
-                          )}
-                        </div>
-                        <span className="font-medium">Cart ({totalItems})</span>
+                        <FiShoppingCart className="mr-3 w-5 h-5" />
+                        <span className="font-medium">Cart</span>
+                        {totalItems > 0 && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="ml-2 inline-flex items-center justify-center rounded-full bg-red-500 px-2 text-[11px] font-bold text-white leading-none h-5 min-w-[20px]"
+                          >
+                            {totalItems > 99 ? '99+' : totalItems}
+                          </motion.span>
+                        )}
                       </Link>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
