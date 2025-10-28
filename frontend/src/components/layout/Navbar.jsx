@@ -138,10 +138,22 @@ const Navbar = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm font-medium"
+                    className="flex items-center space-x-2 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm font-medium"
                   >
-                    <FiUser className="w-5 h-5" />
-                    <span className="hidden lg:block font-medium">{user?.name}</span>
+                    <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-700">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt="avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-semibold">
+                          {user?.name?.[0]?.toUpperCase() || 'U'}
+                        </span>
+                      )}
+                    </span>
+                    <span className="hidden lg:block font-medium truncate max-w-[10rem]">{user?.name}</span>
                   </motion.button>
 
                   <AnimatePresence>

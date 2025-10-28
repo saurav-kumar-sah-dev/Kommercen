@@ -120,6 +120,8 @@ router.get('/me', auth, async (req, res) => {
         avatar: req.user.avatar,
         address: req.user.address,
         phone: req.user.phone,
+        isEmailVerified: req.user.isEmailVerified,
+        createdAt: req.user.createdAt,
         cart: req.user.cart,
         wishlist: req.user.wishlist
       }
@@ -135,12 +137,13 @@ router.get('/me', auth, async (req, res) => {
 // @access  Private
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address, avatar } = req.body;
     const updateData = {};
 
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
     if (address) updateData.address = address;
+    if (avatar !== undefined) updateData.avatar = avatar;
 
     const user = await User.findByIdAndUpdate(
       req.user._id,

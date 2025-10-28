@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
-import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit3, FiSave, FiX, FiEye, FiEyeOff } from 'react-icons/fi'
+import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit3, FiSave, FiX, FiEye, FiEyeOff, FiImage } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
-import { authAPI } from '../utils/api'
+import { authAPI, uploadAPI } from '../utils/api'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
@@ -18,6 +18,7 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
+    avatar: user?.avatar || '',
     address: {
       street: user?.address?.street || '',
       city: user?.address?.city || '',
@@ -38,6 +39,7 @@ const Profile = () => {
       setProfileData({
         name: user.name || '',
         phone: user.phone || '',
+        avatar: user.avatar || '',
         address: {
           street: user.address?.street || '',
           city: user.address?.city || '',
@@ -98,6 +100,7 @@ const Profile = () => {
     setProfileData({
       name: user.name || '',
       phone: user.phone || '',
+      avatar: user.avatar || '',
       address: {
         street: user.address?.street || '',
         city: user.address?.city || '',
@@ -112,6 +115,34 @@ const Profile = () => {
   const cancelPasswordChange = () => {
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     setIsChangingPassword(false)
+  }
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      const res = await uploadAPI.uploadSingle(formData)
+      const imageUrl = res.data?.image?.secureUrl || res.data?.image?.url
+      if (!imageUrl) throw new Error('Upload failed')
+      setProfileData({ ...profileData, avatar: imageUrl })
+      await updateProfile({ avatar: imageUrl })
+    } catch (error) {
+      // Upload failed
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -131,6 +162,43 @@ const Profile = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Profile Information */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Avatar */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold flex items-center">
+                      <FiImage className="mr-2" />
+                      Profile Picture
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                      {profileData.avatar ? (
+                        <img src={profileData.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-gray-400">{user?.name?.[0]?.toUpperCase() || 'U'}</div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
+                        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                        Upload New
+                      </label>
+                      {profileData.avatar && (
+                        <button
+                          type="button"
+                          onClick={() => setProfileData({ ...profileData, avatar: '' })}
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
                 {/* Basic Information */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -229,7 +297,8 @@ const Profile = () => {
                   </div>
                 </motion.div>
 
-                {/* Address Information */}
+                {/* Address Information */
+                }
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -241,6 +310,15 @@ const Profile = () => {
                       <FiMapPin className="mr-2" />
                       Address Information
                     </h2>
+                    {!isEditing && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        <FiEdit3 className="mr-1" />
+                        Edit
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -343,6 +421,32 @@ const Profile = () => {
                       )}
                     </div>
                   </div>
+
+                  {isEditing && (
+                    <div className="flex space-x-3 pt-4">
+                      <button
+                        onClick={handleProfileUpdate}
+                        disabled={loading}
+                        className="flex items-center btn-primary"
+                      >
+                        {loading ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <FiSave className="mr-1" />
+                            Save Address
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="flex items-center btn-outline"
+                      >
+                        <FiX className="mr-1" />
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
 
                 {/* Password Change */}
@@ -472,12 +576,6 @@ const Profile = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Account type</span>
                       <span className="font-medium capitalize">{user?.role || 'User'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email verified</span>
-                      <span className={`font-medium ${user?.isEmailVerified ? 'text-green-600' : 'text-red-600'}`}>
-                        {user?.isEmailVerified ? 'Yes' : 'No'}
-                      </span>
                     </div>
                   </div>
                 </motion.div>
