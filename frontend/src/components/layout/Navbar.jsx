@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,6 +28,12 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth()
   const { totalItems } = useCart()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/'
+    return location.pathname.startsWith(path)
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -81,11 +88,11 @@ const Navbar = () => {
           </form>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link 
                 to="/products" 
-                className="flex items-center space-x-1 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm font-medium"
+                className={`flex items-center space-x-1 px-3 py-2 rounded-full text-white transition-all duration-300 text-sm font-medium shadow-sm ${isActive('/products') ? 'bg-gradient-to-r from-cyan-400 to-blue-500 ring-2 ring-white/30' : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110'}`}
               >
                 <FiTrendingUp className="w-4 h-4" />
                 <span>Products</span>
@@ -98,7 +105,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     to="/admin" 
-                    className="flex items-center space-x-1 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg text-white hover:from-orange-600 hover:to-red-600 transition-all duration-300 text-sm font-medium"
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-full text-white transition-all duration-300 text-sm font-medium shadow-sm ${isActive('/admin') ? 'bg-gradient-to-r from-amber-400 to-rose-500 ring-2 ring-white/30' : 'bg-gradient-to-r from-amber-500 to-rose-600 hover:brightness-110'}`}
                   >
                     <FiStar className="w-4 h-4" />
                     <span>Admin</span>
@@ -107,7 +114,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     to="/admin/products" 
-                    className="flex items-center space-x-1 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white hover:from-green-600 hover:to-emerald-600 transition-all duration-300 text-sm font-medium"
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-full text-white transition-all duration-300 text-sm font-medium shadow-sm ${isActive('/admin/products') ? 'bg-gradient-to-r from-emerald-400 to-green-500 ring-2 ring-white/30' : 'bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110'}`}
                   >
                     <FiPlus className="w-4 h-4" />
                     <span>Add</span>
@@ -119,13 +126,13 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link to="/cart" title={`Cart (${totalItems})`} className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors duration-300">
+                  <Link to="/cart" title={`Cart (${totalItems})`} className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors duration-300 shadow-sm ${isActive('/cart') ? 'bg-gradient-to-br from-indigo-400 to-violet-600 ring-2 ring-white/30' : 'bg-gradient-to-br from-indigo-500 to-violet-700 hover:brightness-110'}`}>
                     <FiShoppingCart className="w-5 h-5" />
                     {totalItems > 0 && (
                       <motion.span 
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-10 bg-red-500 text-white text-[10px] rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center font-bold leading-none shadow-md ring-2 ring-gray-900"
+                        className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-10 bg-pink-500 text-white text-[10px] rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center font-bold leading-none shadow-md ring-2 ring-gray-900"
                       >
                         {totalItems > 99 ? '99+' : totalItems}
                       </motion.span>
@@ -138,7 +145,7 @@ const Navbar = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm font-medium"
+                    className="flex items-center space-x-2 px-3 py-2 rounded-full text-white transition-all duration-300 text-sm font-medium bg-white/5 border border-white/10 hover:bg-white/10"
                   >
                     <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-700">
                       {user?.avatar ? (
@@ -163,11 +170,11 @@ const Navbar = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-56 bg-gray-800 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-700 py-2 z-50"
+                        className="absolute right-0 mt-2 w-56 bg-gradient-to-b from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 py-2 z-50"
                       >
                         <Link
                           to="/profile"
-                          className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300"
+                          className="flex items-center px-4 py-3 text-gray-200 hover:bg-white/10 hover:text-white transition-all duration-300"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <FiSettings className="w-4 h-4 mr-3 text-blue-400" />
@@ -175,16 +182,16 @@ const Navbar = () => {
                         </Link>
                         <Link
                           to="/orders"
-                          className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300"
+                          className="flex items-center px-4 py-3 text-gray-200 hover:bg-white/10 hover:text-white transition-all duration-300"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <FiUser className="w-4 h-4 mr-3 text-green-400" />
                           <span className="font-medium">Orders</span>
                         </Link>
-                        <div className="border-t border-gray-700 my-1"></div>
+                        <div className="border-t border-white/10 my-1"></div>
                         <button
                           onClick={handleLogout}
-                          className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300"
+                          className="flex items-center w-full px-4 py-3 text-gray-200 hover:bg-white/10 hover:text-white transition-all duration-300"
                         >
                           <FiLogOut className="w-4 h-4 mr-3 text-red-400" />
                           <span className="font-medium">Logout</span>
@@ -199,7 +206,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     to="/login" 
-                    className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                    className="px-3 py-2 text-gray-100 hover:text-white transition-colors text-sm font-medium"
                   >
                     Login
                   </Link>
@@ -207,7 +214,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     to="/register" 
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
+                    className="px-4 py-2 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white rounded-full hover:from-fuchsia-600 hover:to-purple-700 transition-all duration-300 text-sm font-medium shadow-sm"
                   >
                     Sign Up
                   </Link>
@@ -221,7 +228,7 @@ const Navbar = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300"
+            className="md:hidden p-2 rounded-xl text-white transition-all duration-300 bg-white/10 border border-white/10 hover:bg-white/20"
           >
             <AnimatePresence mode="wait">
               {isMenuOpen ? (
@@ -248,7 +255,8 @@ const Navbar = () => {
             </AnimatePresence>
           </motion.button>
         </div>
-
+        {/* Accent top border to match footer */}
+        <div className="h-px w-full bg-gradient-to-r from-blue-600/60 via-purple-500/60 to-pink-500/60" />
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
@@ -257,7 +265,7 @@ const Navbar = () => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="md:hidden border-t border-gray-800 py-6"
+              className="md:hidden border-t border-white/10 py-6 bg-gradient-to-b from-gray-900/80 to-gray-800/80"
             >
               {/* Mobile Search */}
               <motion.form 
@@ -273,9 +281,9 @@ const Navbar = () => {
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-white placeholder-gray-400 text-sm"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-300/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all duration-300 text-sm"
                   />
-                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300/80 w-4 h-4" />
                 </div>
               </motion.form>
 
@@ -289,7 +297,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     to="/"
-                    className="flex items-center space-x-2 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm"
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-white transition-all duration-300 text-sm ${isActive('/') ? 'bg-white/15 ring-1 ring-white/20' : 'bg-white/5 hover:bg-white/10'}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <FiHome className="w-5 h-5" />
@@ -300,7 +308,7 @@ const Navbar = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     to="/products"
-                    className="flex items-center space-x-2 px-3 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-all duration-300 text-sm"
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-white transition-all duration-300 text-sm ${isActive('/products') ? 'bg-gradient-to-r from-cyan-500 to-blue-600 ring-1 ring-white/20' : 'bg-gradient-to-r from-cyan-500/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-600'}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <FiTrendingUp className="w-5 h-5" />

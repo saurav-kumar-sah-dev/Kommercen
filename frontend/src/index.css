@@ -43,6 +43,44 @@
 }
 
 @layer utilities {
+  .bg-animated-gradient {
+    background-image: linear-gradient(90deg,
+      rgba(17,24,39,0.92) 0%,
+      rgba(17,24,39,0.92) 8%,
+      rgba(236,72,153,0.28) 16%,
+      rgba(245,158,11,0.28) 24%,
+      rgba(250,204,21,0.28) 32%,
+      rgba(34,197,94,0.28) 40%,
+      rgba(34,211,238,0.28) 48%,
+      rgba(99,102,241,0.28) 56%,
+      rgba(168,85,247,0.28) 64%,
+      rgba(236,72,153,0.28) 72%,
+      rgba(17,24,39,0.92) 100%
+    );
+    background-size: 400% 100%;
+    animation: rainbowShift 18s ease infinite;
+  }
+
+  /* Brand pink → purple gradient */
+  .bg-brand-gradient {
+    background-image: linear-gradient(90deg, #ff4ec7, #7c3aed);
+  }
+
+  .underline-brand {
+    background-image: linear-gradient(90deg, #ff4ec7, #7c3aed);
+  }
+
+  .rainbow-underline {
+    background-image: linear-gradient(90deg, #ec4899, #f59e0b, #fde047, #22c55e, #22d3ee, #6366f1, #a855f7, #ec4899);
+    background-size: 200% 100%;
+    animation: rainbowShift 14s linear infinite;
+  }
+
+  @keyframes rainbowShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
   .text-gradient {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
