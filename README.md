@@ -2,6 +2,11 @@ Kommercen — Your Marketplace, Simplified
 
 Modern, full‑stack e‑commerce application built with the MERN stack. This monorepo contains an Express/MongoDB backend and a Vite/React frontend with authentication, product/catalog, cart/checkout, Razorpay payments, image uploads to Cloudinary, and an admin panel for orders, users, products, and contact messages.
 
+## Live
+
+- Frontend: [kommercen.vercel.app](https://kommercen.vercel.app/)
+- Backend API: [kommercen-backend.onrender.com](https://kommercen-backend.onrender.com)
+
 ## Project Structure
 
 ```
@@ -164,6 +169,8 @@ Frontend (Vercel/Netlify):
 - Build with `npm run build` inside `frontend/`.
 - Serve the `frontend/dist` output.
 - Configure the API base URL in the frontend environment or `api.js` if needed.
+- Vercel environment variable:
+  - `VITE_API_URL=https://kommercen-backend.onrender.com/api`
 
 ## Security & Hardening
 
