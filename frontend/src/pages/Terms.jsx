@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
-import { FiShield, FiFileText, FiClock, FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
+import { FiShield, FiFileText, FiClock, FiMail, FiPhone, FiMapPin, FiArrowLeft } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 
 const Terms = () => {
   return (
@@ -18,26 +19,41 @@ const Terms = () => {
             transition={{ duration: 0.6 }}
             className="max-w-5xl mx-auto"
           >
+            {/* Back Button */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-6 px-4 md:px-0"
+            >
+              <Link 
+                to="/" 
+                className="inline-flex items-center space-x-2 text-gray-600 hover:text-indigo-600 transition-colors duration-300"
+              >
+                <FiArrowLeft className="w-4 h-4" />
+                <span className="text-sm font-medium">Back to Home</span>
+              </Link>
+            </motion.div>
             {/* Header Section */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl p-8 md:p-12 mb-8 text-white"
+              className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-12 mb-6 md:mb-8 text-white"
             >
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                   <FiFileText className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2">Terms and Conditions</h1>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Terms and Conditions</h1>
                   <div className="flex items-center space-x-2 text-blue-100">
                     <FiClock className="w-4 h-4" />
                     <span className="text-sm">Last updated: {new Date().toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
-              <p className="text-blue-100 text-lg leading-relaxed">
+              <p className="text-blue-100 text-base sm:text-lg leading-relaxed">
                 Please read these terms carefully before using our service. By accessing Kommercen, you agree to be bound by these terms.
               </p>
             </motion.div>
@@ -47,7 +63,7 @@ const Terms = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 md:p-10"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 md:p-10"
             >
 
               <div className="space-y-8">
@@ -212,88 +228,69 @@ const Terms = () => {
                 </p>
               </section>
 
-                {/* Contact Section */}
+                {/* Contact Section (styled like Cookie Policy) */}
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 1.2 }}
-                  className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-8 border border-gray-200"
+                  className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-100 shadow-lg"
                 >
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                    <FiMail className="w-6 h-6 text-blue-600 mr-3" />
-                    Contact Information
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed mb-6">
-                    If you have any questions about these Terms and Conditions, please contact us:
+                  {/* decorative gradient blob */}
+                  <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-gradient-to-br from-green-200/60 via-emerald-200/40 to-teal-200/30 blur-3xl" />
+
+                  <div className="flex items-center justify-between flex-wrap gap-3 mb-4 sm:mb-6">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                      <FiMail className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3" />
+                      Contact Information
+                    </h2>
+                    <span className="inline-flex items-center rounded-full bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 text-xs sm:text-sm font-medium">
+                      Typically responds within 24 hours
+                    </span>
+                  </div>
+
+                  <p className="text-gray-700 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">
+                    Have questions about these Terms and Conditions? We’re here to help.
                   </p>
-                  {/* Unified Contact Section */}
-                  <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-3xl p-8 border border-gray-200 shadow-xl">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {/* Email Section */}
-                      <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-4 lg:space-y-0 lg:space-x-6">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                          <FiMail className="w-8 h-8 text-white" />
-                        </div>
-                        <div className="text-center lg:text-left">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">Email Contact</h3>
-                          <p className="text-gray-700 font-semibold text-lg mb-1">sauravshubham903@gmail.com</p>
-                          <p className="text-gray-500 text-sm">Direct communication for any queries</p>
-                        </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Email card */}
+                    <div className="group rounded-lg sm:rounded-xl p-4 sm:p-5 bg-white border border-gray-200 hover:border-green-300 shadow-sm hover:shadow-md transition-all">
+                      <div className="flex items-center mb-2 sm:mb-3">
+                        <FiMail className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2" />
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Email</h3>
                       </div>
+                      <a
+                        href="mailto:sauravshubham903@gmail.com"
+                        className="inline-flex items-center text-green-700 hover:text-green-800 text-sm sm:text-base font-medium"
+                      >
+                        sauravshubham903@gmail.com
+                      </a>
+                    </div>
 
-                      {/* Connect Section */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-center lg:justify-start mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <FiMapPin className="w-8 h-8 text-white" />
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-900 ml-4">Connect With Me</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {/* GitHub */}
-                          <a 
-                            href="https://github.com/saurav-kumar-sah-dev" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="group flex flex-col items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
-                          >
-                            <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors shadow-md">
-                              <span className="text-white font-bold text-lg">GH</span>
-                            </div>
-                            <span className="text-gray-700 font-semibold text-sm text-center group-hover:text-gray-900">GitHub</span>
-                            <span className="text-gray-500 text-xs text-center mt-1">Code & Projects</span>
-                          </a>
-
-                          {/* LinkedIn */}
-                          <a 
-                            href="https://www.linkedin.com/in/sauravkumarsah-dev/" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="group flex flex-col items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
-                          >
-                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-700 transition-colors shadow-md">
-                              <span className="text-white font-bold text-lg">LI</span>
-                            </div>
-                            <span className="text-gray-700 font-semibold text-sm text-center group-hover:text-gray-900">LinkedIn</span>
-                            <span className="text-gray-500 text-xs text-center mt-1">Professional</span>
-                          </a>
-
-                          {/* Portfolio Contact */}
-                          <a 
-                            href="https://saurav-portfolio-dun.vercel.app/contact" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="group flex flex-col items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
-                          >
-                            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-3 group-hover:from-green-600 group-hover:to-emerald-600 transition-all shadow-md">
-                              <span className="text-white font-bold text-lg">PC</span>
-                            </div>
-                            <span className="text-gray-700 font-semibold text-sm text-center group-hover:text-gray-900">Portfolio</span>
-                            <span className="text-gray-500 text-xs text-center mt-1">Contact Form</span>
-                          </a>
-                        </div>
+                    {/* Contact page card */}
+                    <div className="group rounded-lg sm:rounded-xl p-4 sm:p-5 bg-white border border-gray-200 hover:border-green-300 shadow-sm hover:shadow-md transition-all">
+                      <div className="flex items-center mb-2 sm:mb-3">
+                        <FiMapPin className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 mr-2" />
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Contact Form</h3>
                       </div>
+                      <p className="text-gray-600 text-xs sm:text-sm mb-3">
+                        Prefer a form? Send us a message directly.
+                      </p>
+                      <a
+                        href="/contact"
+                        className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-md bg-green-600 text-white text-xs sm:text-sm font-medium shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                      >
+                        Go to Contact Page
+                      </a>
+                    </div>
+
+                    {/* Location card */}
+                    <div className="group rounded-lg sm:rounded-xl p-4 sm:p-5 bg-white border border-gray-200 hover:border-green-300 shadow-sm hover:shadow-md transition-all">
+                      <div className="flex items-center mb-2 sm:mb-3">
+                        <FiMapPin className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 mr-2" />
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Location</h3>
+                      </div>
+                      <p className="text-gray-600 text-xs sm:text-sm">Online<br />Remote<br />Worldwide</p>
                     </div>
                   </div>
                 </motion.section>
