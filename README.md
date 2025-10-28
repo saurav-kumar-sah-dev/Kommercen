@@ -5,9 +5,7 @@
   <p>Modern MERN e‑commerce with auth, catalog, cart, checkout, payments, uploads, and an admin panel.</p>
 
   <p>
-    <a href="https://kommercen.vercel.app">Live App</a>
-    ·
-    <a href="https://kommercen-backend.onrender.com/api/health">API Health</a>
+    
   </p>
 
   <p>
@@ -241,7 +239,7 @@ Frontend (Vercel/Netlify):
 - Build with `npm run build` inside `frontend/`
 - Serve the `frontend/dist` output
 - Configure the API base URL via env or `api.js`
-- Vercel example: `VITE_API_URL=https://kommercen-backend.onrender.com/api`
+- Vercel example: `VITE_API_URL=https://your-backend-domain.example.com/api`
 
 ---
 
