@@ -1,34 +1,98 @@
-Kommercen — Your Marketplace, Simplified
+<div align="center">
 
-Modern, full‑stack e‑commerce application built with the MERN stack. This monorepo contains an Express/MongoDB backend and a Vite/React frontend with authentication, product/catalog, cart/checkout, Razorpay payments, image uploads to Cloudinary, and an admin panel for orders, users, products, and contact messages.
+  <h1>Kommercen — Your Marketplace, Simplified</h1>
 
-## Live
+  <p>Modern MERN e‑commerce with auth, catalog, cart, checkout, payments, uploads, and an admin panel.</p>
 
-- Frontend: [kommercen.vercel.app](https://kommercen.vercel.app/)
-- Backend API: [kommercen-backend.onrender.com](https://kommercen-backend.onrender.com)
+  <p>
+    <a href="https://kommercen.vercel.app">Live App</a>
+    ·
+    <a href="https://kommercen-backend.onrender.com/api/health">API Health</a>
+  </p>
 
-## Project Structure
+  <p>
+    <img alt="License" src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
+    <img alt="Stack" src="https://img.shields.io/badge/Stack-MERN-4caf50?style=flat-square" />
+    <img alt="Build" src="https://img.shields.io/badge/Build-Vite-646cff?style=flat-square" />
+  </p>
+
+</div>
+
+---
+
+### ✨ Features
+
+- **Authentication & Profiles**: JWT auth, profile updates, password change
+- **Products & Catalog**: CRUD, categories, reviews, searchable listings
+- **Cart & Wishlist**: Persisted per user, easy adjustments
+- **Checkout & Payments**: Razorpay integration with verification and refunds
+- **Media Uploads**: Cloudinary single/multi image uploads with limits
+- **Contact & Email**: Validated form, admin inbox, optional SendGrid mails
+- **Admin Panel**: Users, products, orders, contacts, stats
+
+---
+
+### 🚀 Live
+
+- Frontend (demo): [kommercen.vercel.app](https://kommercen.vercel.app/)
+- Backend health: [kommercen-backend.onrender.com/api/health](https://kommercen-backend.onrender.com/api/health)
+
+Demo pages:
+- Home: `https://kommercen.vercel.app/`
+- Products: `https://kommercen.vercel.app/products`
+- Cart: `https://kommercen.vercel.app/cart`
+- Checkout: `https://kommercen.vercel.app/checkout`
+- Contact: `https://kommercen.vercel.app/contact`
+- Login: `https://kommercen.vercel.app/login`
+- Register: `https://kommercen.vercel.app/register`
+- Admin Dashboard: `https://kommercen.vercel.app/admin`
+
+---
+
+### 🗂️ Project Structure
 
 ```
 .
 ├── backend/              # Express API + MongoDB models
 │   ├── middleware/       # auth, validation
 │   ├── models/           # Mongoose schemas (User, Product, Order, Contact)
-│   ├── routes/           # REST endpoints (auth, products, users, orders, contact, upload, razorpay)
+│   ├── routes/           # REST endpoints
+│   │   ├── auth.js       # auth/login/register/profile
+│   │   ├── products.js   # product CRUD, categories, reviews
+│   │   ├── users.js      # user admin management, cart, wishlist
+│   │   ├── orders.js     # orders create/list/update
+│   │   ├── upload.js     # Cloudinary single/multiple uploads
+│   │   ├── razorpay.js   # payments: create, verify, refund, config
+│   │   └── contact.js    # contact form, admin inbox, stats
 │   ├── utils/            # Cloudinary integration
 │   └── server.js         # App entrypoint
 ├── frontend/             # React + Vite + Tailwind UI
-│   └── src/              # Pages, components, contexts
+│   └── src/
+│       ├── components/
+│       │   ├── auth/         # protected/admin routes
+│       │   ├── layout/       # Navbar, Footer
+│       │   ├── payments/     # Razorpay Checkout
+│       │   ├── products/     # ProductCard, etc.
+│       │   └── ui/           # LoadingSpinner, shared UI
+│       ├── context/          # AuthContext, CartContext
+│       ├── pages/            # All pages (home, products, admin/*)
+│       ├── utils/            # api.js (axios instance + API wrappers)
+│       ├── App.jsx           # routes
+│       └── main.jsx          # app bootstrap
 └── package.json          # Monorepo scripts (dev/build helpers)
 ```
 
-## Tech Stack
+---
 
-- Backend: Node.js, Express, MongoDB (Mongoose), JWT, SendGrid, Razorpay, Cloudinary
-- Frontend: React 18, Vite, React Router, React Query, Tailwind CSS
-- Tooling: Nodemon, Concurrently, ESLint
+### 🧰 Tech Stack
 
-## Quick Start
+- **Backend**: Node.js, Express, MongoDB (Mongoose), JWT, SendGrid, Razorpay, Cloudinary
+- **Frontend**: React 18, Vite, React Router, React Query, Tailwind CSS
+- **Tooling**: Nodemon, Concurrently, ESLint
+
+---
+
+### ⚡ Quick Start
 
 1) Clone and install dependencies
 
@@ -38,9 +102,7 @@ cd kommercen
 npm run install-all
 ```
 
-2) Configure environment variables
-
-Create a `.env` file in `backend/` with the following keys:
+2) Configure environment variables (create `backend/.env`)
 
 ```bash
 # Core
@@ -66,33 +128,34 @@ EMAIL_USER=noreply@example.com
 
 Notes:
 - Razorpay and SendGrid are optional at runtime; routes degrade gracefully if keys are missing.
-- Update CORS allowlist in `backend/server.js` if your frontend origin differs in development/production.
+- Update CORS allowlist in `backend/server.js` if your frontend origin differs.
 
 3) Run in development
 
 ```bash
 npm run dev
-# Runs backend (nodemon) and frontend (vite) concurrently
+# Backend (nodemon) + Frontend (vite) concurrently
 ```
 
-Frontend dev server: `http://localhost:5173`
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
 
-Backend API: `http://localhost:5000`
+---
 
-## Scripts
+### 📜 Scripts
 
 Top-level (monorepo):
 
-- `npm run dev` – start backend and frontend together via Concurrently
+- `npm run dev` – start backend and frontend together
 - `npm run server` – backend only (nodemon)
 - `npm run client` – frontend only (vite dev)
 - `npm run build` – build frontend bundle
-- `npm run install-all` – install root, backend, and frontend dependencies
+- `npm run install-all` – install root, backend, and frontend deps
 
 Backend (`backend/package.json`):
 
 - `npm run start` – start Express in production
-- `npm run dev` – start Express in watch mode (nodemon)
+- `npm run dev` – start Express in watch mode
 
 Frontend (`frontend/package.json`):
 
@@ -101,7 +164,9 @@ Frontend (`frontend/package.json`):
 - `npm run preview` – preview built app
 - `npm run lint` – run ESLint
 
-## Environment Variables (Backend)
+---
+
+### 🔐 Environment Variables (Backend)
 
 - `PORT` – API port (default 5000)
 - `NODE_ENV` – environment name
@@ -113,18 +178,20 @@ Frontend (`frontend/package.json`):
 - `ADMIN_EMAIL` – destination for contact form alerts (optional)
 - `EMAIL_USER` – from/sender email (optional)
 
-## Key API Endpoints
+---
+
+### 📡 Key API Endpoints
 
 Base URL: `http://localhost:5000/api`
 
 - Auth (`/auth`):
   - `POST /register` – create account
   - `POST /login` – authenticate user
-  - `GET /me` – current user profile (requires JWT)
+  - `GET /me` – current user profile (JWT)
   - `PUT /profile` – update profile (JWT)
   - `PUT /change-password` – update password (JWT)
-- Products (`/products`) – CRUD and listing (see route for details)
-- Users (`/users`) – admin management routes
+- Products (`/products`) – CRUD and listing
+- Users (`/users`) – admin management
 - Orders (`/orders`) – create/list orders
 - Uploads (`/upload`):
   - `POST /single` – upload one image (JWT)
@@ -136,52 +203,60 @@ Base URL: `http://localhost:5000/api`
   - `GET /config` – public config (keyId/currency)
   - `POST /refund` – process refund (admin JWT)
 - Contact (`/contact`):
-  - `POST /` – submit contact message (validates and stores in DB; emails if configured)
+  - `POST /` – submit contact message (validated, saved; emails if configured)
   - `GET /admin` – list messages (admin JWT)
   - `GET /admin/stats` – stats (admin JWT)
   - `GET /admin/:id` – single message (admin JWT)
   - `PUT /admin/:id/status` – update status (admin JWT)
   - `DELETE /admin/:id` – delete (admin JWT)
+  - `GET /test` – send a test email if SendGrid is configured (public)
 
 Utility:
 - `GET /health` – health/status
 - `GET /test` – basic connectivity check
 
-## Frontend
+---
+
+### 🖥️ Frontend
 
 - Vite + React at `frontend/`
-- Uses contexts for auth and cart, Razorpay checkout integration, and admin pages under `/admin/*`.
+- Contexts for auth/cart, Razorpay checkout, admin pages under `/admin/*`
 
-Development URLs (default):
+Development defaults:
 - App: `http://localhost:5173`
 - API: `http://localhost:5000/api`
 
-If you host the frontend separately (e.g., Vercel), ensure the deployed origin is allowed by CORS in `backend/server.js` and the frontend points to the deployed API base URL (see `frontend/src/utils/api.js`).
+If hosting frontend separately (e.g., Vercel), allow the deployed origin via CORS in `backend/server.js` and set the API base URL (see `frontend/src/utils/api.js`).
 
-## Deployment
+---
+
+### ☁️ Deployment
 
 Backend (Render/Railway/EC2, etc.):
-- Set all backend environment variables in your host.
-- Run `npm ci && npm run start` inside `backend/`.
-- Ensure MongoDB connectivity and correct CORS origins.
+- Set all backend environment variables
+- Run `npm ci && npm run start` inside `backend/`
+- Ensure MongoDB connectivity and correct CORS origins
 
 Frontend (Vercel/Netlify):
-- Build with `npm run build` inside `frontend/`.
-- Serve the `frontend/dist` output.
-- Configure the API base URL in the frontend environment or `api.js` if needed.
-- Vercel environment variable:
-  - `VITE_API_URL=https://kommercen-backend.onrender.com/api`
+- Build with `npm run build` inside `frontend/`
+- Serve the `frontend/dist` output
+- Configure the API base URL via env or `api.js`
+- Vercel example: `VITE_API_URL=https://kommercen-backend.onrender.com/api`
 
-## Security & Hardening
+---
 
-- Use a long, random `JWT_SECRET` in production.
-- Restrict CORS to trusted origins only.
-- Do not commit `.env` files or secrets.
-- Validate and sanitize inputs (server uses `express-validator` on sensitive routes like contact).
-- Enforce HTTPS in production and secure cookies if you add sessions.
+### 🔒 Security & Hardening
 
-## License
+- Use a long, random `JWT_SECRET` in production
+- Restrict CORS to trusted origins only
+- Never commit `.env` files or secrets
+- Validate/sanitize inputs (`express-validator` used on sensitive routes)
+- Enforce HTTPS in production; use secure cookies if you add sessions
 
-MIT © Kommercen Team
+---
+
+### 📄 License
+
+[MIT](./LICENSE) © Kommercen Team
 
 
