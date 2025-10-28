@@ -13,7 +13,8 @@ import {
   FiEye,
   FiEdit,
   FiTrash2,
-  FiPlus
+  FiPlus,
+  FiMail
 } from 'react-icons/fi'
 import { useQuery } from 'react-query'
 import { productsAPI, ordersAPI } from '../../utils/api'
@@ -327,6 +328,17 @@ const AdminDashboard = () => {
                 <div>
                   <p className="font-medium text-purple-900">Manage Users</p>
                   <p className="text-sm text-purple-700">View user accounts</p>
+                </div>
+              </Link>
+              
+              <Link
+                to="/admin/contacts"
+                className="flex items-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+              >
+                <FiMail className="w-6 h-6 text-indigo-600 mr-3" />
+                <div>
+                  <p className="font-medium text-indigo-900">Contact Messages</p>
+                  <p className="text-sm text-indigo-700">Manage inquiries</p>
                 </div>
               </Link>
             </div>

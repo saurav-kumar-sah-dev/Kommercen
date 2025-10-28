@@ -16,10 +16,12 @@ import Register from '@/pages/Register'
 import Profile from '@/pages/Profile'
 import Orders from '@/pages/Orders'
 import OrderDetail from '@/pages/OrderDetail'
+import Contact from '@/pages/Contact'
 import AdminDashboard from '@/pages/admin/Dashboard'
 import AdminProducts from '@/pages/admin/Products'
 import AdminOrders from '@/pages/admin/Orders'
 import AdminUsers from '@/pages/admin/Users'
+import AdminContacts from '@/pages/admin/Contacts'
 import Terms from '@/pages/Terms'
 import Privacy from '@/pages/Privacy'
 import CookiePolicy from '@/pages/CookiePolicy'
@@ -47,6 +49,7 @@ function App() {
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/cookies" element={<CookiePolicy />} />
@@ -97,6 +100,11 @@ function App() {
           <Route path="/admin/users" element={
             <AdminRoute>
               <AdminUsers />
+            </AdminRoute>
+          } />
+          <Route path="/admin/contacts" element={
+            <AdminRoute>
+              <AdminContacts />
             </AdminRoute>
           } />
           

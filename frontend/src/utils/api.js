@@ -107,4 +107,15 @@ export const razorpayAPI = {
   processRefund: (data) => api.post('/razorpay/refund', data),
 }
 
+// Contact API
+export const contactAPI = {
+  sendMessage: (data) => api.post('/contact', data),
+  testEmail: () => api.get('/contact/test'),
+  getContacts: (params = {}) => api.get('/contact/admin', { params }),
+  getContact: (id) => api.get(`/contact/admin/${id}`),
+  getStats: () => api.get('/contact/admin/stats'),
+  updateStatus: (id, data) => api.put(`/contact/admin/${id}/status`, data),
+  deleteContact: (id) => api.delete(`/contact/admin/${id}`),
+}
+
 export default api

@@ -15,7 +15,8 @@ import {
   FiPlus,
   FiHome,
   FiStar,
-  FiTrendingUp
+  FiTrendingUp,
+  FiMail
 } from 'react-icons/fi'
 
 const Navbar = () => {

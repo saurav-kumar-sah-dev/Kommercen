@@ -108,6 +108,13 @@ try {
   console.error('❌ Error loading razorpay routes:', error);
 }
 
+try {
+  app.use('/api/contact', require('./routes/contact'));
+  console.log('✅ Contact routes loaded');
+} catch (error) {
+  console.error('❌ Error loading contact routes:', error);
+}
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
