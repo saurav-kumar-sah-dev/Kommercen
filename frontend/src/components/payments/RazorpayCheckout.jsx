@@ -45,10 +45,7 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
 
       const { orderId, amount, currency } = response.data
 
-      // Load Razorpay script
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      script.onload = () => {
+      const openCheckout = () => {
         const options = {
           key: razorpayConfig.keyId,
           amount: amount,
@@ -92,15 +89,28 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
             }
           }
         }
-
         const rzp = new window.Razorpay(options)
         rzp.open()
       }
-      script.onerror = () => {
-        toast.error('Failed to load payment gateway')
-        setIsProcessing(false)
+
+      // Load Razorpay script only once
+      if (window.Razorpay) {
+        openCheckout()
+      } else {
+        const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')
+        if (existing) {
+          existing.addEventListener('load', openCheckout, { once: true })
+        } else {
+          const script = document.createElement('script')
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+          script.onload = openCheckout
+          script.onerror = () => {
+            toast.error('Failed to load payment gateway')
+            setIsProcessing(false)
+          }
+          document.body.appendChild(script)
+        }
       }
-      document.body.appendChild(script)
 
     } catch (error) {
       const msg = error?.response?.data?.message || 'Payment failed. Please try again.'
