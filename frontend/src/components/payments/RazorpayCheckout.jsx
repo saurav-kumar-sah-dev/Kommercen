@@ -53,6 +53,8 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       const { orderId, amount, currency } = response.data
 
       const openCheckout = () => {
+        const sa = orderData?.shippingAddress || {}
+        const ba = orderData?.billingAddress || {}
         const options = {
           key: razorpayConfig.keyId,
           amount: amount,
@@ -67,8 +69,8 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                shippingAddress: orderData.shippingAddress,
-                billingAddress: orderData.billingAddress
+                shippingAddress: sa,
+                billingAddress: ba
               })
 
               if (verifyResponse.data) {
@@ -80,9 +82,9 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
             }
           },
           prefill: {
-            name: orderData.shippingAddress.name,
-            email: orderData.shippingAddress.email,
-            contact: orderData.shippingAddress.phone || ''
+            name: sa.name || '',
+            email: sa.email || '',
+            contact: sa.phone || ''
           },
           notes: {
             address: orderData.shippingAddress.street
