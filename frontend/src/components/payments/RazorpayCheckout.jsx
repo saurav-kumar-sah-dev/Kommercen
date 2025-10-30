@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useCart } from '@/context/CartContext'
 import { razorpayAPI } from '../../utils/api'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../ui/LoadingSpinner'
@@ -6,6 +7,7 @@ import LoadingSpinner from '../ui/LoadingSpinner'
 const RazorpayCheckout = ({ orderData, onSuccess }) => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [razorpayConfig, setRazorpayConfig] = useState(null)
+  const cart = useCart()
 
   useEffect(() => {
     // Load Razorpay configuration
@@ -29,7 +31,12 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       toast.error('Payment data not ready')
       return
     }
-    if (!orderData.items || orderData.items.length === 0) {
+    // Fallback: build items from cart context when not provided
+    const items = (orderData.items && orderData.items.length > 0)
+      ? orderData.items
+      : (cart.items || []).map(it => ({ productId: it.product._id, quantity: it.quantity }))
+
+    if (!items || items.length === 0) {
       toast.error('Your cart is empty. Please add items before paying.')
       return
     }
@@ -39,7 +46,7 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
     try {
       // Create Razorpay order
       const response = await razorpayAPI.createOrder({
-        items: orderData.items,
+        items,
         shippingAddress: orderData.shippingAddress
       })
 
