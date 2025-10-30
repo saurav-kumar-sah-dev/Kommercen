@@ -25,6 +25,8 @@ import AdminContacts from '@/pages/admin/Contacts'
 import Terms from '@/pages/Terms'
 import Privacy from '@/pages/Privacy'
 import CookiePolicy from '@/pages/CookiePolicy'
+import Shipping from '@/pages/Shipping'
+import Refunds from '@/pages/Refunds'
 import NotFound from '@/pages/NotFound'
 
 // Protected Route Component
@@ -53,6 +55,8 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="/shipping" element={<Shipping />} />
+          <Route path="/refunds" element={<Refunds />} />
           
           {/* Protected Routes */}
           <Route path="/cart" element={
