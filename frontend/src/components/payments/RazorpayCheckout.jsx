@@ -29,6 +29,10 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       toast.error('Payment data not ready')
       return
     }
+    if (!orderData.items || orderData.items.length === 0) {
+      toast.error('Your cart is empty. Please add items before paying.')
+      return
+    }
 
     setIsProcessing(true)
 
