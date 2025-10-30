@@ -55,6 +55,11 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       const openCheckout = () => {
         const sa = orderData?.shippingAddress || {}
         const ba = orderData?.billingAddress || {}
+        if (!window.Razorpay) {
+          toast.error('Payment gateway not available. Please refresh and try again.')
+          setIsProcessing(false)
+          return
+        }
         const options = {
           key: razorpayConfig.keyId,
           amount: amount,
@@ -98,8 +103,15 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
             }
           }
         }
-        const rzp = new window.Razorpay(options)
-        rzp.open()
+        try {
+          const rzp = new window.Razorpay(options)
+          rzp.open()
+        } catch (e) {
+          toast.error('Unable to open payment modal. Please try again.')
+        } finally {
+          // Re-enable the button even if the modal remains open
+          setIsProcessing(false)
+        }
       }
 
       // Load Razorpay script only once
