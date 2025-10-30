@@ -145,9 +145,26 @@ router.post('/verify-payment', auth, async (req, res) => {
     // Get order details from Razorpay
     const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
     
-    // Parse order items from notes
-    const orderItems = JSON.parse(razorpayOrder.notes.orderItems);
-    const parsedShippingAddress = JSON.parse(razorpayOrder.notes.shippingAddress);
+    // Parse order items and addresses from notes when present
+    let orderItems = [];
+    if (razorpayOrder.notes && razorpayOrder.notes.orderItems) {
+      try {
+        orderItems = JSON.parse(razorpayOrder.notes.orderItems);
+      } catch (_) {
+        return res.status(400).json({ message: 'Invalid order items data on payment' });
+      }
+    } else {
+      return res.status(400).json({ message: 'Missing order items on payment' });
+    }
+
+    let parsedShippingAddress = req.body.shippingAddress;
+    if ((!parsedShippingAddress || !parsedShippingAddress.street) && razorpayOrder.notes && razorpayOrder.notes.shippingAddress) {
+      try {
+        parsedShippingAddress = JSON.parse(razorpayOrder.notes.shippingAddress);
+      } catch (_) {
+        // keep body-provided address if exists; otherwise leave undefined
+      }
+    }
 
     // Create order in database
     const order = new Order({

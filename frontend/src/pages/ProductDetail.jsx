@@ -18,7 +18,7 @@ import {
 } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { productsAPI } from '../utils/api'
+import { productsAPI, wishlistAPI } from '../utils/api'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 
@@ -31,9 +31,10 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
+  const [inWishlist, setInWishlist] = useState(false)
 
   // Fetch product details
-  const { data: productData, isLoading, error } = useQuery(
+  const { data: productData, isLoading, error, refetch } = useQuery(
     ['product', id],
     () => productsAPI.getProduct(id),
     {
@@ -49,6 +50,18 @@ const ProductDetail = () => {
       setSelectedImage(0)
     }
   }, [product])
+
+  useEffect(() => {
+    const loadWishlist = async () => {
+      try {
+        if (!isAuthenticated) return
+        const res = await wishlistAPI.getWishlist()
+        const ids = (res.data?.wishlist || []).map(p => p._id)
+        setInWishlist(ids.includes(id))
+      } catch {}
+    }
+    loadWishlist()
+  }, [id, isAuthenticated])
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -67,6 +80,27 @@ const ProductDetail = () => {
           // Error adding to cart
         } finally {
       setIsAddingToCart(false)
+    }
+  }
+
+  const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to manage wishlist')
+      navigate('/login')
+      return
+    }
+    try {
+      if (inWishlist) {
+        await wishlistAPI.removeFromWishlist(product._id)
+        setInWishlist(false)
+        toast.success('Removed from wishlist')
+      } else {
+        await wishlistAPI.addToWishlist(product._id)
+        setInWishlist(true)
+        toast.success('Added to wishlist')
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Wishlist action failed')
     }
   }
 
@@ -103,6 +137,30 @@ const ProductDetail = () => {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!isAuthenticated) {
+      toast.error('Please login to write a review')
+      return
+    }
+    setIsSubmittingReview(true)
+    try {
+      await productsAPI.addReview(product._id, { rating: Number(reviewRating), comment: reviewComment })
+      toast.success('Review submitted')
+      setReviewComment('')
+      setReviewRating(5)
+      refetch()
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to submit review')
+    } finally {
+      setIsSubmittingReview(false)
+    }
   }
 
   if (isLoading) {
@@ -282,9 +340,9 @@ const ProductDetail = () => {
                       </>
                     )}
                   </button>
-                  <button className="flex items-center justify-center btn-outline py-3 px-6">
+                  <button onClick={handleToggleWishlist} className={`flex items-center justify-center py-3 px-6 ${inWishlist ? 'btn-primary' : 'btn-outline'}`}>
                     <FiHeart className="mr-2" />
-                    Wishlist
+                    {inWishlist ? 'In Wishlist' : 'Wishlist'}
                   </button>
                   <button className="flex items-center justify-center btn-outline py-3 px-6">
                     <FiShare2 className="mr-2" />
@@ -412,6 +470,44 @@ const ProductDetail = () => {
                             <p className="text-sm text-gray-400">Be the first to review this product!</p>
                           </div>
                         )}
+
+                        {/* Write a review */}
+                        <div className="mt-6 border-t pt-4">
+                          <h3 className="text-lg font-semibold mb-2">Write a review</h3>
+                          <form onSubmit={handleSubmitReview} className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                              <select
+                                value={reviewRating}
+                                onChange={(e) => setReviewRating(e.target.value)}
+                                className="input-field"
+                              >
+                                {[5,4,3,2,1].map((r) => (
+                                  <option key={r} value={r}>{r} star{r>1?'s':''}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                              <textarea
+                                rows={3}
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Share your experience with this product"
+                              />
+                            </div>
+                            <div>
+                              <button
+                                type="submit"
+                                disabled={isSubmittingReview}
+                                className="btn-primary"
+                              >
+                                {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                              </button>
+                            </div>
+                          </form>
+                        </div>
                       </div>
                     )}
                   </div>

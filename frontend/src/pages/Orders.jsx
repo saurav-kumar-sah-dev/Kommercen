@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { useQuery } from 'react-query'
+import toast from 'react-hot-toast'
 import { FiPackage, FiEye, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiRefreshCw } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { ordersAPI } from '../utils/api'
@@ -33,6 +34,30 @@ const Orders = () => {
       keepPreviousData: true
     }
   )
+  const handleCancel = async (orderId) => {
+    const reason = window.prompt('Reason for cancellation (optional):') || ''
+    try {
+      await ordersAPI.cancelOrder(orderId, reason)
+      toast.success('Order cancelled or request submitted')
+      refetch()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to cancel order')
+    }
+  }
+
+  const handleRefund = async (orderId, total) => {
+    const amountStr = window.prompt('Refund amount (leave blank for full amount):', String(total))
+    if (amountStr === null) return
+    const amount = amountStr.trim() === '' ? undefined : Number(amountStr)
+    const reason = window.prompt('Reason for refund (optional):') || ''
+    try {
+      await ordersAPI.requestRefund(orderId, amount, reason)
+      toast.success('Refund request submitted')
+      refetch()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to request refund')
+    }
+  }
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -223,6 +248,16 @@ const Orders = () => {
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </span>
+                          {order.cancellationRequested && (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                              Cancellation requested
+                            </span>
+                          )}
+                          {order.refundRequested && (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                              Refund requested
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -289,9 +324,15 @@ const Orders = () => {
                         </button>
                       )}
                       
-                      {(order.status === 'pending' || order.status === 'confirmed') && (
-                        <button className="btn-outline text-red-600 border-red-300 hover:bg-red-50 text-sm py-2">
+                      {(order.status === 'pending' || order.status === 'confirmed' || order.status === 'processing') && (
+                        <button onClick={() => handleCancel(order._id)} className="btn-outline text-red-600 border-red-300 hover:bg-red-50 text-sm py-2">
                           Cancel Order
+                        </button>
+                      )}
+
+                      {order.paymentStatus === 'paid' && (
+                        <button onClick={() => handleRefund(order._id, order.total)} className="btn-outline text-sm py-2">
+                          Request Refund
                         </button>
                       )}
                     </div>

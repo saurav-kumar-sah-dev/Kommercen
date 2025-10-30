@@ -605,6 +605,23 @@ const Profile = () => {
                     </div>
                   </div>
                 </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                >
+                  <h3 className="text-lg font-semibold mb-4">My Shortcuts</h3>
+                  <div className="space-y-3">
+                    <a
+                      href="/wishlist"
+                      className="w-full inline-flex items-center justify-center btn-outline"
+                    >
+                      View Wishlist
+                    </a>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </div>

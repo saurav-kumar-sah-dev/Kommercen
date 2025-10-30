@@ -13,6 +13,17 @@ const Cart = () => {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [isUpdating, setIsUpdating] = useState({})
+  const [selected, setSelected] = useState({})
+  useEffect(() => {
+    if (items.length > 0 && Object.keys(selected).length === 0) {
+      const init = {}
+      items.forEach(i => { init[i.product._id] = true })
+      setSelected(init)
+    }
+  }, [items])
+
+  const selectedItems = items.filter(i => selected[i.product._id])
+  const selectedSubtotal = selectedItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -52,15 +63,15 @@ const Cart = () => {
   }
 
   const calculateShipping = () => {
-    return totalPrice > 100 ? 0 : 10
+    return selectedSubtotal > 100 ? 0 : 10
   }
 
   const calculateTax = () => {
-    return totalPrice * 0.18 // 18% GST
+    return selectedSubtotal * 0.18 // 18% GST
   }
 
   const calculateTotal = () => {
-    return totalPrice + calculateShipping() + calculateTax()
+    return selectedSubtotal + calculateShipping() + calculateTax()
   }
 
   if (loading) {
@@ -131,6 +142,13 @@ const Cart = () => {
                     className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
                   >
                     <div className="flex items-center space-x-4">
+                      <input
+                        type="checkbox"
+                        checked={!!selected[item.product._id]}
+                        onChange={(e) => setSelected({ ...selected, [item.product._id]: e.target.checked })}
+                        className="w-5 h-5"
+                        title="Select item for checkout"
+                      />
                       {/* Product Image */}
                       <Link to={`/products/${item.product._id}`} className="flex-shrink-0">
                         <img
@@ -207,7 +225,10 @@ const Cart = () => {
                 ))}
 
                 {/* Clear Cart Button */}
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    Selected: {selectedItems.length} of {items.length}
+                  </div>
                   <button
                     onClick={handleClearCart}
                     className="text-red-600 hover:text-red-700 transition-colors"
@@ -229,8 +250,8 @@ const Cart = () => {
 
                   <div className="space-y-4">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Subtotal ({totalItems} items)</span>
-                      <span className="font-medium">₹{totalPrice.toFixed(2)}</span>
+                      <span className="text-gray-600">Subtotal ({selectedItems.length} items)</span>
+                      <span className="font-medium">₹{selectedSubtotal.toFixed(2)}</span>
                     </div>
 
                     <div className="flex justify-between">
@@ -258,13 +279,14 @@ const Cart = () => {
                   </div>
 
                   <div className="mt-6 space-y-3">
-                    <Link
-                      to="/checkout"
-                      className="w-full btn-primary text-center block py-3"
+                    <button
+                      disabled={selectedItems.length === 0}
+                      onClick={() => navigate('/checkout', { state: { selectedProductIds: selectedItems.map(i => i.product._id) } })}
+                      className="w-full btn-primary text-center block py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Proceed to Checkout
                       <FiArrowRight className="ml-2 inline" />
-                    </Link>
+                    </button>
 
                     <Link
                       to="/products"

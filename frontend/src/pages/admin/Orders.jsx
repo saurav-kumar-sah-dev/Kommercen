@@ -18,7 +18,7 @@ import {
   FiCalendar
 } from 'react-icons/fi'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { ordersAPI } from '../../utils/api'
+import { ordersAPI, razorpayAPI } from '../../utils/api'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 
@@ -29,6 +29,7 @@ const AdminOrders = () => {
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showStatusModal, setShowStatusModal] = useState(false)
+  const [showRefundModal, setShowRefundModal] = useState(false)
 
   const queryClient = useQueryClient()
 
@@ -56,6 +57,58 @@ const AdminOrders = () => {
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update order status')
+      }
+    }
+  )
+
+  // useQueryClient already defined above as queryClient
+  const approveCancellation = useMutation(
+    (id) => ordersAPI.approveCancellation(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('admin-orders')
+        toast.success('Cancellation approved and order cancelled')
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to approve cancellation')
+      }
+    }
+  )
+  const denyCancellation = useMutation(
+    (id) => ordersAPI.denyCancellation(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('admin-orders')
+        toast.success('Cancellation request denied')
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to deny cancellation')
+      }
+    }
+  )
+  const clearRefundRequest = useMutation(
+    (id) => ordersAPI.clearRefundRequest(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('admin-orders')
+        toast.success('Refund request cleared')
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to clear refund request')
+      }
+    }
+  )
+
+  const processRefundMutation = useMutation(
+    ({ orderId, amount, reason }) => razorpayAPI.processRefund({ orderId, amount, reason }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('admin-orders')
+        setShowRefundModal(false)
+        toast.success('Refund processed successfully')
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to process refund')
       }
     }
   )
@@ -329,6 +382,92 @@ const AdminOrders = () => {
     )
   }
 
+  const RefundModal = ({ isOpen, onClose, order }) => {
+    const [amount, setAmount] = useState(order ? order.total : 0)
+    const [reason, setReason] = useState(order?.refundRequestedReason || '')
+
+    useEffect(() => {
+      if (order) {
+        setAmount(order.refundRequestedAmount || order.total)
+        setReason(order.refundRequestedReason || '')
+      }
+    }, [order])
+
+    const handleSubmit = (e) => {
+      e.preventDefault()
+      if (!order) return
+      if (!amount || Number(amount) <= 0) {
+        toast.error('Enter a valid amount')
+        return
+      }
+      processRefundMutation.mutate({ orderId: order._id, amount: Number(amount), reason })
+    }
+
+    if (!order) return null
+
+    return (
+      <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isOpen ? 'block' : 'hidden'}`}>
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+          >
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Process Refund</h3>
+              <p className="text-gray-600">Order #{order.orderNumber}</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount (INR)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Max: ₹{order.total.toFixed(2)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                <textarea
+                  rows={3}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={processRefundMutation.isLoading}
+                  className="btn-primary"
+                >
+                  {processRefundMutation.isLoading ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    'Process Refund'
+                  )}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <Helmet>
@@ -462,6 +601,14 @@ const AdminOrders = () => {
                             {getStatusIcon(order.status)}
                             <span className="ml-1 capitalize">{order.status}</span>
                           </span>
+                          <div className="mt-1 flex gap-2">
+                            {order.cancellationRequested && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 border border-red-200">Cancel requested</span>
+                            )}
+                            {order.refundRequested && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">Refund requested</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full bg-${getPaymentStatusColor(order.paymentStatus)}-100 text-${getPaymentStatusColor(order.paymentStatus)}-800`}>
@@ -485,6 +632,42 @@ const AdminOrders = () => {
                             >
                               <FiEdit className="w-4 h-4" />
                             </button>
+                            {order.cancellationRequested && (
+                              <>
+                                <button
+                                  onClick={() => approveCancellation.mutate(order._id)}
+                                  className="text-red-600 hover:text-red-800"
+                                  title="Approve cancellation"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => denyCancellation.mutate(order._id)}
+                                  className="text-gray-600 hover:text-gray-800"
+                                  title="Deny cancellation"
+                                >
+                                  Deny
+                                </button>
+                              </>
+                            )}
+                            {order.paymentStatus === 'paid' && (
+                              <button
+                                onClick={() => { setSelectedOrder(order); setShowRefundModal(true) }}
+                                className="text-indigo-600 hover:text-indigo-800"
+                                title="Process refund"
+                              >
+                                Process Refund
+                              </button>
+                            )}
+                            {order.refundRequested && (
+                              <button
+                                onClick={() => clearRefundRequest.mutate(order._id)}
+                                className="text-gray-600 hover:text-gray-800"
+                                title="Mark refund request handled"
+                              >
+                                Clear Refund Request
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -509,6 +692,15 @@ const AdminOrders = () => {
             isOpen={showStatusModal}
             onClose={() => {
               setShowStatusModal(false)
+              setSelectedOrder(null)
+            }}
+            order={selectedOrder}
+          />
+
+          <RefundModal
+            isOpen={showRefundModal}
+            onClose={() => {
+              setShowRefundModal(false)
               setSelectedOrder(null)
             }}
             order={selectedOrder}

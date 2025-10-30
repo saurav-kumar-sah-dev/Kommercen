@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { FiMapPin, FiTruck, FiLock, FiArrowLeft, FiCreditCard } from 'react-icons/fi'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { razorpayAPI } from '../utils/api'
+import { razorpayAPI, ordersAPI } from '../utils/api'
 import RazorpayCheckout from '../components/payments/RazorpayCheckout'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const Checkout = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { items, totalPrice, clearCart } = useCart()
   const { user } = useAuth()
   const [orderData, setOrderData] = useState(null)
@@ -36,12 +37,16 @@ const Checkout = () => {
     phone: ''
   })
   const [useSameAddress, setUseSameAddress] = useState(true)
+  const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
+
+  const selectedProductIds = location.state?.selectedProductIds || items.map(i => i.product._id)
+  const selectedItems = items.filter(i => selectedProductIds.includes(i.product._id))
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (selectedItems.length === 0) {
       navigate('/cart')
     }
-  }, [items, navigate])
+  }, [selectedItems, navigate])
 
   useEffect(() => {
     if (useSameAddress) {
@@ -57,20 +62,43 @@ const Checkout = () => {
 
     setIsLoading(true)
     try {
-      const orderItems = items.map(item => ({
-        productId: item.product._id,
-        quantity: item.quantity
-      }))
+      if (paymentMethod === 'cod') {
+        // Create order directly as COD
+        const orderItemsForCod = selectedItems.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity
+        }))
+        const res = await ordersAPI.createOrder({
+          items: orderItemsForCod,
+          shippingAddress,
+          billingAddress: useSameAddress ? shippingAddress : billingAddress,
+          paymentMethod: { type: 'cash_on_delivery' }
+        })
+        clearCart()
+        navigate(`/orders/${res.data.order._id}`, {
+          state: { message: 'Order placed successfully with Cash on Delivery!' }
+        })
+      } else {
+        const orderItems = selectedItems.map(item => ({
+          productId: item.product._id,
+          quantity: item.quantity
+        }))
 
-      const response = await razorpayAPI.createOrder({
-        items: orderItems,
-        shippingAddress
-      })
+        const response = await razorpayAPI.createOrder({
+          items: orderItems,
+          shippingAddress
+        })
 
-      setOrderData(response.data)
+        setOrderData({
+          ...response.data,
+          items: orderItems,
+          shippingAddress,
+          billingAddress: useSameAddress ? shippingAddress : billingAddress
+        })
+      }
     } catch (error) {
       // Error creating payment order
-      toast.error('Failed to initialize payment. Please try again.')
+      toast.error(error?.response?.data?.message || 'Failed to initialize checkout. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -83,7 +111,7 @@ const Checkout = () => {
     })
   }
 
-  if (items.length === 0) {
+  if (selectedItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -315,7 +343,7 @@ const Checkout = () => {
               </motion.div>
 
               {/* Payment Section */}
-              {orderData ? (
+              {orderData && paymentMethod === 'online' ? (
                 <RazorpayCheckout orderData={orderData} onSuccess={handleOrderSuccess} />
               ) : (
                 <motion.div
@@ -324,26 +352,49 @@ const Checkout = () => {
                   transition={{ delay: 0.2 }}
                   className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
                 >
-                  <div className="text-center">
-                    <FiLock className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Secure Payment with Razorpay</h3>
-                    <p className="text-gray-600 mb-6">
-                      Pay securely with UPI, Cards, Net Banking, and Digital Wallets
-                    </p>
-                    <button
-                      onClick={handleCreatePaymentIntent}
-                      disabled={isLoading}
-                      className="btn-primary w-full"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center justify-center">
-                          <LoadingSpinner size="sm" />
-                          <span className="ml-2">Preparing Payment...</span>
-                        </div>
-                      ) : (
-                        'Continue to Payment'
-                      )}
-                    </button>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Payment Method</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'online' ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'}`}>
+                        <input
+                          type="radio"
+                          name="payment"
+                          className="mr-2"
+                          checked={paymentMethod === 'online'}
+                          onChange={() => setPaymentMethod('online')}
+                        />
+                        Online (Razorpay)
+                        <p className="text-sm text-gray-500 mt-1">UPI, Cards, Net Banking, Wallets</p>
+                      </label>
+                      <label className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'cod' ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'}`}>
+                        <input
+                          type="radio"
+                          name="payment"
+                          className="mr-2"
+                          checked={paymentMethod === 'cod'}
+                          onChange={() => setPaymentMethod('cod')}
+                        />
+                        Cash on Delivery
+                        <p className="text-sm text-gray-500 mt-1">Pay with cash upon delivery</p>
+                      </label>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={handleCreatePaymentIntent}
+                        disabled={isLoading}
+                        className="btn-primary w-full"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center justify-center">
+                            <LoadingSpinner size="sm" />
+                            <span className="ml-2">{paymentMethod === 'cod' ? 'Placing Order...' : 'Preparing Payment...'}</span>
+                          </div>
+                        ) : (
+                          paymentMethod === 'cod' ? 'Place Order (COD)' : 'Continue to Payment'
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -364,7 +415,7 @@ const Checkout = () => {
                 </h2>
 
                 <div className="space-y-4">
-                  {items.map((item) => (
+                  {selectedItems.map((item) => (
                     <div key={item.product._id} className="flex items-center space-x-4">
                       <img
                         src={item.product.images[0]?.url || '/api/placeholder/80/80'}
@@ -385,19 +436,19 @@ const Checkout = () => {
                 <div className="border-t pt-4 mt-4 space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>₹{totalPrice.toFixed(2)}</span>
+                    <span>₹{selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>{totalPrice > 100 ? 'Free' : '₹10.00'}</span>
+                    <span>{selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0) > 100 ? 'Free' : '₹10.00'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>GST (18%)</span>
-                    <span>₹{(totalPrice * 0.18).toFixed(2)}</span>
+                    <span>₹{(selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0) * 0.18).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg border-t pt-2">
                     <span>Total</span>
-                    <span>₹{(totalPrice + (totalPrice > 100 ? 0 : 10) + (totalPrice * 0.18)).toFixed(2)}</span>
+                    <span>₹{(() => { const sub = selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0); return (sub + (sub > 100 ? 0 : 10) + (sub * 0.18)).toFixed(2) })()}</span>
                   </div>
                 </div>
 

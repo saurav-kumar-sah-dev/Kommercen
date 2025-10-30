@@ -130,13 +130,30 @@ const orderSchema = new mongoose.Schema({
   refundAmount: {
     type: Number,
     min: 0
-  }
+  },
+  // User-driven lifecycle requests
+  cancellationRequested: {
+    type: Boolean,
+    default: false
+  },
+  cancellationReason: String,
+  cancellationRequestedAt: Date,
+  refundRequested: {
+    type: Boolean,
+    default: false
+  },
+  refundRequestedAmount: {
+    type: Number,
+    min: 0
+  },
+  refundRequestedReason: String,
+  refundRequestedAt: Date
 }, {
   timestamps: true
 });
 
 // Generate order number before saving
-orderSchema.pre('save', async function(next) {
+orderSchema.pre('validate', async function(next) {
   if (!this.orderNumber) {
     const count = await mongoose.model('Order').countDocuments();
     this.orderNumber = `ORD-${Date.now()}-${String(count + 1).padStart(4, '0')}`;
@@ -144,8 +161,8 @@ orderSchema.pre('save', async function(next) {
   next();
 });
 
-// Calculate total before saving
-orderSchema.pre('save', function(next) {
+// Calculate total before validation to satisfy required constraints
+orderSchema.pre('validate', function(next) {
   this.total = this.subtotal + this.tax + this.shipping - this.discount;
   next();
 });

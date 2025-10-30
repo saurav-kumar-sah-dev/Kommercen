@@ -16,6 +16,7 @@ import Register from '@/pages/Register'
 import Profile from '@/pages/Profile'
 import Orders from '@/pages/Orders'
 import OrderDetail from '@/pages/OrderDetail'
+import Wishlist from '@/pages/Wishlist'
 import Contact from '@/pages/Contact'
 import AdminDashboard from '@/pages/admin/Dashboard'
 import AdminProducts from '@/pages/admin/Products'
@@ -72,6 +73,11 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/wishlist" element={
+            <ProtectedRoute>
+              <Wishlist />
             </ProtectedRoute>
           } />
           <Route path="/orders" element={

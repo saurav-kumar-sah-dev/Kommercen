@@ -34,7 +34,7 @@ const OrderDetail = () => {
   }, [isAuthenticated, navigate])
 
   // Fetch order details
-  const { data: orderData, isLoading, error } = useQuery(
+  const { data: orderData, isLoading, error, refetch } = useQuery(
     ['order', id],
     () => ordersAPI.getOrder(id),
     {
@@ -124,6 +124,32 @@ const OrderDetail = () => {
     toast.success('Invoice download feature coming soon!')
   }
 
+  const handleCancel = async () => {
+    const reason = window.prompt('Reason for cancellation (optional):') || ''
+    try {
+      await ordersAPI.cancelOrder(order._id, reason)
+      toast.success('Order cancelled or request submitted')
+      refetch()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to cancel order')
+    }
+  }
+
+  const handleRefund = async () => {
+    const defaultAmount = order.total
+    const amountStr = window.prompt('Refund amount (leave blank for full amount):', String(defaultAmount))
+    if (amountStr === null) return
+    const amount = amountStr.trim() === '' ? undefined : Number(amountStr)
+    const reason = window.prompt('Reason for refund (optional):') || ''
+    try {
+      await ordersAPI.requestRefund(order._id, amount, reason)
+      toast.success('Refund request submitted')
+      refetch()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to request refund')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -205,6 +231,20 @@ const OrderDetail = () => {
                       <span className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
+                      {(order.cancellationRequested || order.refundRequested) && (
+                        <div className="mt-2 flex items-center gap-2">
+                          {order.cancellationRequested && (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                              Cancellation requested
+                            </span>
+                          )}
+                          {order.refundRequested && (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                              Refund requested
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className="text-sm text-gray-600 mt-1">
                         {order.status === 'pending' && 'Your order is being processed'}
                         {order.status === 'confirmed' && 'Your order has been confirmed'}
@@ -372,9 +412,15 @@ const OrderDetail = () => {
                       </button>
                     )}
                     
-                    {(order.status === 'pending' || order.status === 'confirmed') && (
-                      <button className="w-full btn-outline text-red-600 border-red-300 hover:bg-red-50">
+                    {(order.status === 'pending' || order.status === 'confirmed' || order.status === 'processing') && (
+                      <button onClick={handleCancel} className="w-full btn-outline text-red-600 border-red-300 hover:bg-red-50">
                         Cancel Order
+                      </button>
+                    )}
+
+                    {order.paymentStatus === 'paid' && (
+                      <button onClick={handleRefund} className="w-full btn-outline">
+                        Request Refund
                       </button>
                     )}
 

@@ -243,6 +243,164 @@ router.put('/:id/payment-status', auth, adminAuth, async (req, res) => {
   }
 });
 
+// @route   POST /api/orders/:id/approve-cancellation
+// @desc    Admin approves user cancellation request, cancel and restock
+// @access  Private (Admin)
+router.post('/:id/approve-cancellation', auth, adminAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('items.product', 'stock');
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.status === 'cancelled') {
+      return res.json({ message: 'Order already cancelled', order });
+    }
+
+    // Restock products
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product._id || item.product, { $inc: { stock: item.quantity } });
+    }
+
+    order.status = 'cancelled';
+    order.cancellationRequested = false;
+    await order.save();
+
+    res.json({ message: 'Cancellation approved and order cancelled', order });
+  } catch (error) {
+    console.error('Approve cancellation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/orders/:id/deny-cancellation
+// @desc    Admin denies user cancellation request
+// @access  Private (Admin)
+router.post('/:id/deny-cancellation', auth, adminAuth, async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: { cancellationRequested: false } },
+      { new: true }
+    );
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    res.json({ message: 'Cancellation request denied', order });
+  } catch (error) {
+    console.error('Deny cancellation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/orders/:id/clear-refund-request
+// @desc    Admin marks refund request as handled (use Razorpay refund endpoint to actually refund)
+// @access  Private (Admin)
+router.post('/:id/clear-refund-request', auth, adminAuth, async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: { refundRequested: false, refundRequestedAmount: undefined, refundRequestedReason: undefined } },
+      { new: true }
+    );
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    res.json({ message: 'Refund request cleared', order });
+  } catch (error) {
+    console.error('Clear refund request error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/orders/:id/cancel
+// @desc    User cancels own order (if eligible); if already paid, mark request
+// @access  Private
+router.post('/:id/cancel', auth, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const order = await Order.findById(req.params.id).populate('items.product', 'name images stock');
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Must be owner
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to cancel this order' });
+    }
+
+    const cancellableStatuses = ['pending', 'confirmed', 'processing'];
+    const isCancellableStatus = cancellableStatuses.includes(order.status);
+
+    // If not paid or COD, allow immediate cancellation and restock
+    const isUnpaid = order.paymentStatus !== 'paid';
+    const isCOD = order.paymentMethod?.type === 'cash_on_delivery';
+
+    if (isCancellableStatus && (isUnpaid || isCOD)) {
+      // Restock products
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product._id || item.product, { $inc: { stock: item.quantity } });
+      }
+
+      order.status = 'cancelled';
+      order.notes = reason || order.notes;
+      await order.save();
+
+      return res.json({ message: 'Order cancelled successfully', order });
+    }
+
+    // Otherwise, record a cancellation request
+    order.cancellationRequested = true;
+    order.cancellationReason = reason || 'User requested cancellation';
+    order.cancellationRequestedAt = new Date();
+    await order.save();
+
+    return res.json({ message: 'Cancellation request submitted', order });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/orders/:id/request-refund
+// @desc    User requests a refund for a paid order
+// @access  Private
+router.post('/:id/request-refund', auth, async (req, res) => {
+  try {
+    const { amount, reason } = req.body;
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Must be owner
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to request refund for this order' });
+    }
+
+    if (order.paymentStatus !== 'paid') {
+      return res.status(400).json({ message: 'Refunds are only available for paid orders' });
+    }
+
+    if (amount != null && (typeof amount !== 'number' || amount <= 0 || amount > order.total)) {
+      return res.status(400).json({ message: 'Invalid refund amount' });
+    }
+
+    order.refundRequested = true;
+    if (amount != null) order.refundRequestedAmount = amount;
+    order.refundRequestedReason = reason || 'User requested refund';
+    order.refundRequestedAt = new Date();
+    await order.save();
+
+    return res.json({ message: 'Refund request submitted', order });
+  } catch (error) {
+    console.error('Request refund error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/orders/stats/summary
 // @desc    Get order statistics
 // @access  Private (Admin)

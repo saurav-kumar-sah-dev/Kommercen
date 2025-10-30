@@ -86,6 +86,11 @@ export const ordersAPI = {
   updateOrderStatus: (id, data) => api.put(`/orders/${id}/status`, data),
   updatePaymentStatus: (id, data) => api.put(`/orders/${id}/payment-status`, data),
   getOrderStats: () => api.get('/orders/stats/summary'),
+  cancelOrder: (id, reason) => api.post(`/orders/${id}/cancel`, { reason }),
+  requestRefund: (id, amount, reason) => api.post(`/orders/${id}/request-refund`, { amount, reason }),
+  approveCancellation: (id) => api.post(`/orders/${id}/approve-cancellation`),
+  denyCancellation: (id) => api.post(`/orders/${id}/deny-cancellation`),
+  clearRefundRequest: (id) => api.post(`/orders/${id}/clear-refund-request`),
 }
 
 // Upload API

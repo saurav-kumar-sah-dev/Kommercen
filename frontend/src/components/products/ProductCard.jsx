@@ -3,6 +3,7 @@ import { FiHeart, FiShoppingCart, FiStar } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import toast from 'react-hot-toast'
+import { wishlistAPI } from '../../utils/api'
 
 const ProductCard = ({ product }) => {
   const { isAuthenticated } = useAuth()
@@ -29,8 +30,12 @@ const ProductCard = ({ product }) => {
       return
     }
 
-    // TODO: Implement wishlist functionality
-    toast.success('Added to wishlist!')
+    try {
+      await wishlistAPI.addToWishlist(product._id)
+      toast.success('Added to wishlist')
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to add to wishlist')
+    }
   }
 
   const formatPrice = (price) => {

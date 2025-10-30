@@ -67,6 +67,26 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
           name: 'Kommercen',
           description: 'Order Payment',
           order_id: orderId,
+          method: {
+            upi: true,
+            card: true,
+            netbanking: true,
+            wallet: true
+          },
+          config: {
+            display: {
+              blocks: {
+                upiApps: {
+                  name: 'UPI Apps',
+                  instruments: [
+                    { method: 'upi', apps: ['phonepe', 'google_pay', 'paytm'] }
+                  ]
+                }
+              },
+              sequence: ['block.upiApps', 'block.card', 'block.netbanking', 'block.wallet'],
+              preferences: { show_default_blocks: true }
+            }
+          },
           handler: async function (response) {
             try {
               // Verify payment
@@ -92,7 +112,7 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
             contact: sa.phone || ''
           },
           notes: {
-            address: orderData.shippingAddress.street
+            address: sa.street || ''
           },
           theme: {
             color: '#2563eb'
