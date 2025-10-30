@@ -30,6 +30,11 @@ router.post('/create-order', auth, async (req, res) => {
     }
 
     const { items, shippingAddress } = req.body;
+    console.log('[Razorpay] create-order request', {
+      userId: req.user?._id?.toString(),
+      itemsCount: Array.isArray(items) ? items.length : 0,
+      origin: req.get('Origin'),
+    });
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No items provided' });
@@ -40,6 +45,9 @@ router.post('/create-order', auth, async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
+      if (!item?.productId || !item?.quantity) {
+        return res.status(400).json({ message: 'Each item must include productId and quantity' });
+      }
       const product = await Product.findById(item.productId);
       if (!product) {
         return res.status(404).json({ message: `Product ${item.productId} not found` });
@@ -81,6 +89,14 @@ router.post('/create-order', auth, async (req, res) => {
       }
     });
 
+    console.log('[Razorpay] order created', {
+      orderId: razorpayOrder.id,
+      amount: finalAmount,
+      subtotal: totalAmount,
+      tax: taxAmount,
+      shipping: shippingCost,
+    });
+
     res.json({
       orderId: razorpayOrder.id,
       amount: finalAmount,
@@ -93,8 +109,8 @@ router.post('/create-order', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Razorpay order creation error:', error);
-    res.status(500).json({ message: 'Error creating payment order' });
+    console.error('Razorpay order creation error:', error?.message || error);
+    res.status(500).json({ message: `Error creating payment order: ${error?.message || 'unknown error'}` });
   }
 });
 

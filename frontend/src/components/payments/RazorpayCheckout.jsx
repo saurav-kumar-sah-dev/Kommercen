@@ -99,7 +99,8 @@ const RazorpayCheckout = ({ orderData, onSuccess }) => {
       document.body.appendChild(script)
 
     } catch (error) {
-      toast.error('Payment failed. Please try again.')
+      const msg = error?.response?.data?.message || 'Payment failed. Please try again.'
+      toast.error(msg)
       setIsProcessing(false)
     }
   }
