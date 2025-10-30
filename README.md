@@ -22,8 +22,10 @@
 
 - **Authentication & Profiles**: JWT auth, profile updates, password change
 - **Products & Catalog**: CRUD, categories, reviews, searchable listings
-- **Cart & Wishlist**: Persisted per user, easy adjustments
-- **Checkout & Payments**: Razorpay integration with verification and refunds
+- **Cart & Wishlist**: Persisted per user, wishlist page, quick add/remove
+- **Checkout & Payments**: Cash on Delivery (COD) + Razorpay (UPI/Card/Netbanking/Wallet) with signature verification and refunds
+- **Cart selection**: Select specific cart items to checkout
+- **Orders lifecycle**: User cancel and refund requests; admin approve/deny cancellation and refund processing
 - **Media Uploads**: Cloudinary single/multi image uploads with limits
 - **Contact & Email**: Validated form, admin inbox, optional SendGrid mails
 - **Admin Panel**: Users, products, orders, contacts, stats
@@ -127,6 +129,7 @@ EMAIL_USER=noreply@example.com
 Notes:
 - Razorpay and SendGrid are optional at runtime; routes degrade gracefully if keys are missing.
 - Update CORS allowlist in `backend/server.js` if your frontend origin differs.
+- To use UPI in Razorpay Checkout, enable UPI for your key in Razorpay Dashboard → Settings → Payment Configuration → Payment Methods (Test/Live as needed), then set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` and restart the backend.
 
 3) Run in development
 
@@ -191,6 +194,12 @@ Base URL: `http://localhost:5000/api`
 - Products (`/products`) – CRUD and listing
 - Users (`/users`) – admin management
 - Orders (`/orders`) – create/list orders
+  - `POST /` – create order (supports `{ paymentMethod: { type: 'cash_on_delivery' } }` for COD)
+  - `POST /:id/cancel` – user cancel (immediate for COD/unpaid; otherwise records request)
+  - `POST /:id/request-refund` – user refund request for paid orders
+  - `PUT /:id/status` – admin update order status
+  - `PUT /:id/payment-status` – admin update payment status
+  - `GET /stats/summary` – admin stats
 - Uploads (`/upload`):
   - `POST /single` – upload one image (JWT)
   - `POST /multiple` – upload multiple images (JWT)
@@ -200,6 +209,10 @@ Base URL: `http://localhost:5000/api`
   - `POST /verify-payment` – verify signature + persist order (JWT)
   - `GET /config` – public config (keyId/currency)
   - `POST /refund` – process refund (admin JWT)
+  - Admin helpers (via orders routes):
+    - `POST /orders/:id/approve-cancellation` – admin approve cancellation (restocks, cancels)
+    - `POST /orders/:id/deny-cancellation` – admin deny cancellation request
+    - `POST /orders/:id/clear-refund-request` – mark refund request handled
 - Contact (`/contact`):
   - `POST /` – submit contact message (validated, saved; emails if configured)
   - `GET /admin` – list messages (admin JWT)
@@ -219,6 +232,9 @@ Utility:
 
 - Vite + React at `frontend/`
 - Contexts for auth/cart, Razorpay checkout, admin pages under `/admin/*`
+- Wishlist page at `/wishlist` with add/remove and add-to-cart
+- Orders UI supports cancel/refund requests; admin Orders page supports approve/deny and refund processing
+- Checkout supports method selector (Online via Razorpay or COD) and selected-items checkout
 
 Development defaults:
 - App: `http://localhost:5173`
