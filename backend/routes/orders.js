@@ -115,6 +115,11 @@ router.post('/', auth, validateOrder, async (req, res) => {
     // Calculate shipping (free over $50, otherwise $5)
     const shipping = subtotal >= 50 ? 0 : 5;
 
+    // Compute estimated delivery between 3-7 days from now
+    const daysToAdd = Math.floor(Math.random() * 5) + 3; // 3..7
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + daysToAdd);
+
     const orderData = {
       user: req.user._id,
       items: orderItems,
@@ -124,8 +129,17 @@ router.post('/', auth, validateOrder, async (req, res) => {
       subtotal,
       tax,
       shipping,
-      total: subtotal + tax + shipping
+      total: subtotal + tax + shipping,
+      // For COD, keep payment pending, but mark order confirmed so UI shows confirmation
+      status: 'confirmed',
+      estimatedDelivery
     };
+
+    // Enforce COD eligibility rules (e.g., disable COD for high-value orders)
+    const totalAmount = orderData.total;
+    if (paymentMethod?.type === 'cash_on_delivery' && totalAmount > 10000) {
+      return res.status(400).json({ message: 'Cash on Delivery is not available for orders above ₹10,000' });
+    }
 
     const order = new Order(orderData);
     await order.save();

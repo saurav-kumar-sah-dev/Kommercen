@@ -178,21 +178,21 @@ const OrderDetail = () => {
         <title>Order #{order.orderNumber} - Kommercen</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-6 sm:py-10">
         <div className="container-custom">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-8">
               <button
                 onClick={() => navigate('/orders')}
-                className="flex items-center text-gray-600 hover:text-blue-600 transition-colors mb-4"
+                className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors mb-4"
               >
                 <FiArrowLeft className="mr-2" />
                 Back to Orders
               </button>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Order #{order.orderNumber}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Order #{order.orderNumber}</h1>
                   <p className="text-gray-600 mt-2">Placed on {formatDate(order.createdAt)}</p>
                 </div>
                 <div className="flex items-center space-x-3 mt-4 sm:mt-0">
@@ -222,7 +222,7 @@ const OrderDetail = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <h2 className="text-xl font-semibold mb-4">Order Status</h2>
                   <div className="flex items-center space-x-4">
@@ -277,16 +277,16 @@ const OrderDetail = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <h2 className="text-xl font-semibold mb-4">Order Items</h2>
                   <div className="space-y-4">
                     {order.items.map((item, index) => (
-                      <div key={index} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                      <div key={index} className="flex items-center space-x-4 p-4 border border-gray-100 rounded-xl">
                         <img
                           src={item.image || '/api/placeholder/80/80'}
                           alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg"
+                          className="w-20 h-20 object-cover rounded-xl border border-gray-100"
                         />
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900">{item.name}</h3>
@@ -308,7 +308,7 @@ const OrderDetail = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <h2 className="text-xl font-semibold mb-4 flex items-center">
                     <FiMapPin className="mr-2" />
@@ -332,7 +332,7 @@ const OrderDetail = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <h2 className="text-xl font-semibold mb-4 flex items-center">
                     <FiCreditCard className="mr-2" />
@@ -368,7 +368,7 @@ const OrderDetail = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100 sticky top-6"
                 >
                   <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
                   <div className="space-y-3">
@@ -438,7 +438,7 @@ const OrderDetail = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="bg-blue-50 p-6 rounded-lg border border-blue-200"
+                  className="bg-blue-50 p-6 rounded-xl border border-blue-200"
                 >
                   <h3 className="text-lg font-semibold text-blue-900 mb-2">Need Help?</h3>
                   <p className="text-blue-800 text-sm mb-4">

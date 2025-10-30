@@ -166,7 +166,23 @@ router.post('/verify-payment', auth, async (req, res) => {
       }
     }
 
+    // Ensure a complete shipping address is present (schema requires these fields)
+    const hasCompleteAddress = parsedShippingAddress && parsedShippingAddress.name && parsedShippingAddress.street && parsedShippingAddress.city && parsedShippingAddress.state && parsedShippingAddress.zipCode && parsedShippingAddress.country;
+    if (!hasCompleteAddress) {
+      return res.status(400).json({ message: 'Shipping address is required with name, street, city, state, zipCode, and country' });
+    }
+
+    // Recompute amounts in rupees based on items for consistency
+    const recomputedSubtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const recomputedShipping = recomputedSubtotal > 100 ? 0 : 10; // same rule as create-order
+    const recomputedTax = +(recomputedSubtotal * 0.18).toFixed(2);
+    const recomputedTotal = +(recomputedSubtotal + recomputedShipping + recomputedTax).toFixed(2);
+
     // Create order in database
+    const daysToAdd = Math.floor(Math.random() * 5) + 3; // 3..7 days
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + daysToAdd);
+
     const order = new Order({
       user: req.user._id,
       items: orderItems,
@@ -182,10 +198,11 @@ router.post('/verify-payment', auth, async (req, res) => {
       },
       paymentStatus: 'paid',
       paymentIntentId: razorpay_payment_id,
-      subtotal: razorpayOrder.amount - (razorpayOrder.amount * 0.18) - 1000, // Rough calculation
-      tax: razorpayOrder.amount * 0.18,
-      shipping: razorpayOrder.amount > 10000 ? 0 : 1000,
-      total: razorpayOrder.amount,
+      subtotal: recomputedSubtotal,
+      tax: recomputedTax,
+      shipping: recomputedShipping,
+      total: recomputedTotal,
+      estimatedDelivery,
       status: 'confirmed'
     });
 
@@ -209,7 +226,13 @@ router.post('/verify-payment', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Payment verification error:', error);
+    // Improve error logging for easier diagnosis
+    const isValidation = error && error.name === 'ValidationError';
+    if (isValidation) {
+      console.error('Payment verification validation error:', error.message, error.errors || {});
+      return res.status(400).json({ message: `Validation error creating order: ${error.message}` });
+    }
+    console.error('Payment verification error:', error?.message || error);
     res.status(500).json({ message: 'Error verifying payment' });
   }
 });

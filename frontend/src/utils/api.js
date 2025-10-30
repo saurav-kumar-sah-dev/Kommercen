@@ -93,6 +93,11 @@ export const ordersAPI = {
   clearRefundRequest: (id) => api.post(`/orders/${id}/clear-refund-request`),
 }
 
+// Users API (profile-related)
+export const usersAPI = {
+  updateAddress: (data) => api.put('/users/address', data),
+}
+
 // Upload API
 export const uploadAPI = {
   uploadSingle: (formData) => api.post('/upload/single', formData, {

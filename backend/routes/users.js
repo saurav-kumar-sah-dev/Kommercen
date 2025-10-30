@@ -234,4 +234,31 @@ router.delete('/wishlist/:productId', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/users/address
+// @desc    Update user's default address
+// @access  Private
+router.put('/address', auth, async (req, res) => {
+  try {
+    const { street, city, state, zipCode, country, phone, name } = req.body || {};
+    if (!street || !city || !state || !zipCode || !country) {
+      return res.status(400).json({ message: 'Complete address is required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.address = { street, city, state, zipCode, country };
+    if (phone) user.phone = phone;
+    if (name && !user.name) user.name = name; // do not overwrite existing name unless empty
+    await user.save();
+
+    res.json({ message: 'Address updated', address: user.address, phone: user.phone });
+  } catch (error) {
+    console.error('Update address error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

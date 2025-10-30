@@ -186,16 +186,16 @@ const Orders = () => {
         <title>My Orders - Kommercen</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-6 sm:py-10">
         <div className="container-custom">
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Orders</h1>
               <p className="text-gray-600 mt-2">Track and manage your orders</p>
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100 mb-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center space-x-4">
                   <label className="text-sm font-medium text-gray-700">Filter by status:</label>
@@ -229,7 +229,7 @@ const Orders = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Order Info */}
@@ -245,7 +245,7 @@ const Orders = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(order.status)}
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </span>
                           {order.cancellationRequested && (
@@ -268,7 +268,7 @@ const Orders = () => {
                             <img
                               src={item.image || '/api/placeholder/60/60'}
                               alt={item.name}
-                              className="w-12 h-12 object-cover rounded-lg"
+                              className="w-12 h-12 object-cover rounded-xl border border-gray-100"
                             />
                             <div className="flex-1">
                               <h4 className="font-medium text-gray-900">{item.name}</h4>
@@ -292,6 +292,9 @@ const Orders = () => {
                             <p>Payment: <span className={`font-medium ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
                               {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                             </span></p>
+                            {order.estimatedDelivery && (
+                              <p>Est. Delivery: <span className="font-medium">{formatDate(order.estimatedDelivery)}</span></p>
+                            )}
                             {order.trackingNumber && (
                               <p>Tracking: <span className="font-medium">{order.trackingNumber}</span></p>
                             )}

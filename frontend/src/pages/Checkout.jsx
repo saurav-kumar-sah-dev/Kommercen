@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { FiMapPin, FiTruck, FiLock, FiArrowLeft, FiCreditCard } from 'react-icons/fi'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { razorpayAPI, ordersAPI } from '../utils/api'
+import { razorpayAPI, ordersAPI, usersAPI } from '../utils/api'
 import RazorpayCheckout from '../components/payments/RazorpayCheckout'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
@@ -38,6 +38,8 @@ const Checkout = () => {
   })
   const [useSameAddress, setUseSameAddress] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [saveAddress, setSaveAddress] = useState(true)
 
   const selectedProductIds = location.state?.selectedProductIds || items.map(i => i.product._id)
   const selectedItems = items.filter(i => selectedProductIds.includes(i.product._id))
@@ -54,6 +56,44 @@ const Checkout = () => {
     }
   }, [useSameAddress, shippingAddress])
 
+  const useCurrentLocation = async () => {
+    if (!('geolocation' in navigator)) {
+      toast.error('Geolocation is not supported by your browser')
+      return
+    }
+    setGeoLoading(true)
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords
+        // Use OpenStreetMap Nominatim reverse geocoding (no API key required)
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+        const data = await resp.json()
+        const addr = data.address || {}
+        const next = {
+          ...shippingAddress,
+          street: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(', '),
+          city: addr.city || addr.town || addr.village || '',
+          state: addr.state || '',
+          zipCode: addr.postcode || '',
+          country: addr.country || shippingAddress.country
+        }
+        setShippingAddress(next)
+        toast.success('Address filled from your current location')
+      } catch (e) {
+        toast.error('Failed to fetch address from location')
+      } finally {
+        setGeoLoading(false)
+      }
+    }, (err) => {
+      setGeoLoading(false)
+      if (err.code === 1) {
+        toast.error('Location permission denied')
+      } else {
+        toast.error('Unable to get your location')
+      }
+    }, { enableHighAccuracy: true, timeout: 10000 })
+  }
+
   const handleCreatePaymentIntent = async () => {
     if (!shippingAddress.name || !shippingAddress.street || !shippingAddress.city) {
       toast.error('Please fill in all required shipping address fields')
@@ -63,6 +103,14 @@ const Checkout = () => {
     setIsLoading(true)
     try {
       if (paymentMethod === 'cod') {
+        // Enforce COD limit client-side to align with backend rule
+        const sub = selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0)
+        const total = sub + (sub > 100 ? 0 : 10) + (sub * 0.18)
+        if (total > 10000) {
+          toast.error('Cash on Delivery is not available for orders above ₹10,000')
+          setIsLoading(false)
+          return
+        }
         // Create order directly as COD
         const orderItemsForCod = selectedItems.map(item => ({
           product: item.product._id,
@@ -74,6 +122,9 @@ const Checkout = () => {
           billingAddress: useSameAddress ? shippingAddress : billingAddress,
           paymentMethod: { type: 'cash_on_delivery' }
         })
+        if (saveAddress) {
+          try { await usersAPI.updateAddress({ ...shippingAddress }) } catch {}
+        }
         clearCart()
         navigate(`/orders/${res.data.order._id}`, {
           state: { message: 'Order placed successfully with Cash on Delivery!' }
@@ -104,7 +155,10 @@ const Checkout = () => {
     }
   }
 
-  const handleOrderSuccess = (order) => {
+  const handleOrderSuccess = async (order) => {
+    if (saveAddress) {
+      try { await usersAPI.updateAddress({ ...shippingAddress }) } catch {}
+    }
     clearCart()
     navigate(`/orders/${order._id}`, { 
       state: { message: 'Order placed successfully!' }
@@ -133,32 +187,53 @@ const Checkout = () => {
         <title>Checkout - Kommercen</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-6 sm:py-10">
         <div className="container-custom">
-          <div className="mb-6">
+          <div className="mb-6 sm:mb-8">
             <button
               onClick={() => navigate('/cart')}
-              className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+              className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
             >
               <FiArrowLeft className="mr-2" />
               Back to Cart
             </button>
-            <h1 className="text-3xl font-bold mt-4">Checkout</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold mt-4 tracking-tight">Checkout</h1>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Left Column - Forms */}
             <div className="space-y-6">
               {/* Shipping Address */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
               >
                 <h2 className="text-xl font-semibold mb-4 flex items-center">
                   <FiMapPin className="mr-2" />
                   Shipping Address
                 </h2>
+                <div className="flex justify-end mb-3">
+                  <button
+                    type="button"
+                    onClick={useCurrentLocation}
+                    disabled={geoLoading}
+                    className="text-sm text-blue-600 hover:underline disabled:opacity-60"
+                  >
+                    {geoLoading ? 'Detecting location…' : 'Use current location'}
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <label className="inline-flex items-center text-sm">
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Save this address to my profile
+                  </label>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -169,7 +244,7 @@ const Checkout = () => {
                       type="text"
                       value={shippingAddress.name}
                       onChange={(e) => setShippingAddress({...shippingAddress, name: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -181,7 +256,7 @@ const Checkout = () => {
                       type="email"
                       value={shippingAddress.email}
                       onChange={(e) => setShippingAddress({...shippingAddress, email: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -193,7 +268,7 @@ const Checkout = () => {
                       type="text"
                       value={shippingAddress.street}
                       onChange={(e) => setShippingAddress({...shippingAddress, street: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -205,7 +280,7 @@ const Checkout = () => {
                       type="text"
                       value={shippingAddress.city}
                       onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -217,7 +292,7 @@ const Checkout = () => {
                       type="text"
                       value={shippingAddress.state}
                       onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -229,7 +304,7 @@ const Checkout = () => {
                       type="text"
                       value={shippingAddress.zipCode}
                       onChange={(e) => setShippingAddress({...shippingAddress, zipCode: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                       required
                     />
                   </div>
@@ -241,7 +316,7 @@ const Checkout = () => {
                       type="tel"
                       value={shippingAddress.phone}
                       onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -252,7 +327,7 @@ const Checkout = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold flex items-center">
@@ -350,12 +425,12 @@ const Checkout = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100"
                 >
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Payment Method</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <label className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'online' ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'}`}>
+                      <label className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'online' ? 'ring-2 ring-blue-500 border-blue-200 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
                         <input
                           type="radio"
                           name="payment"
@@ -366,7 +441,7 @@ const Checkout = () => {
                         Online (Razorpay)
                         <p className="text-sm text-gray-500 mt-1">UPI, Cards, Net Banking, Wallets</p>
                       </label>
-                      <label className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'cod' ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'}`}>
+                      <label className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'ring-2 ring-blue-500 border-blue-200 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
                         <input
                           type="radio"
                           name="payment"
@@ -383,7 +458,7 @@ const Checkout = () => {
                       <button
                         onClick={handleCreatePaymentIntent}
                         disabled={isLoading}
-                        className="btn-primary w-full"
+                        className="btn-primary w-full py-3 text-base"
                       >
                         {isLoading ? (
                           <div className="flex items-center justify-center">
@@ -408,19 +483,19 @@ const Checkout = () => {
               className="space-y-6"
             >
               {/* Order Summary */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
+              <div className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-gray-100 sticky top-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center">
                   <FiTruck className="mr-2" />
                   Order Summary
                 </h2>
 
-                <div className="space-y-4">
+                <div className="space-y-4 divide-y divide-gray-100">
                   {selectedItems.map((item) => (
-                    <div key={item.product._id} className="flex items-center space-x-4">
+                    <div key={item.product._id} className="flex items-center space-x-4 pt-4 first:pt-0">
                       <img
                         src={item.product.images[0]?.url || '/api/placeholder/80/80'}
                         alt={item.product.name}
-                        className="w-16 h-16 object-cover rounded-lg"
+                        className="w-16 h-16 object-cover rounded-xl border border-gray-100"
                       />
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-900">{item.product.name}</h4>
@@ -433,7 +508,7 @@ const Checkout = () => {
                   ))}
                 </div>
 
-                <div className="border-t pt-4 mt-4 space-y-2">
+                <div className="border-t pt-4 mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span>₹{selectedItems.reduce((s,i)=>s+i.product.price*i.quantity,0).toFixed(2)}</span>
@@ -452,7 +527,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <h4 className="font-semibold text-blue-900 mb-2">Payment Methods</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm text-blue-800">
                     <div>✓ UPI (PhonePe, GPay)</div>

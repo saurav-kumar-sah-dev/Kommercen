@@ -69,14 +69,18 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: {
       type: String,
-      enum: ['card', 'paypal', 'bank_transfer', 'cash_on_delivery'],
+      enum: ['card', 'paypal', 'bank_transfer', 'cash_on_delivery', 'razorpay'],
       required: true
     },
     details: {
       last4: String,
       brand: String,
       expMonth: String,
-      expYear: String
+      expYear: String,
+      // Razorpay specific details
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      razorpaySignature: String
     }
   },
   paymentStatus: {
